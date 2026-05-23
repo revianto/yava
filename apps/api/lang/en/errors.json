@@ -1,0 +1,9 @@
+{
+    "token_missing": "Missing Authorization header or token query parameter",
+    "token_invalid": "Invalid or expired token",
+    "unauthorized": "Unauthorized",
+    "db_unavailable": "Service unavailable, please try again later",
+    "not_found": "Data not found",
+    "forbidden": "You do not have permission to perform this action",
+    "internal": "An internal server error occurred"
+}

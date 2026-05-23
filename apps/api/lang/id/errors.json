@@ -1,0 +1,9 @@
+{
+    "token_missing": "Header Authorization atau token query parameter tidak ditemukan",
+    "token_invalid": "Token tidak valid atau sudah kedaluwarsa",
+    "unauthorized": "Akses tidak diizinkan",
+    "db_unavailable": "Layanan tidak tersedia, coba lagi nanti",
+    "not_found": "Data tidak ditemukan",
+    "forbidden": "Anda tidak memiliki izin untuk melakukan tindakan ini",
+    "internal": "Terjadi kesalahan pada server"
+}
