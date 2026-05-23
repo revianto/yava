@@ -142,7 +142,7 @@ func ConnDB() {
 	if dbTz == "" {
 		dbTz = "UTC"
 	}
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s prefer_simple_protocol=true",
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
 		helpers.GetEnv("DB_HOST"),
 		helpers.GetEnv("DB_PORT"),
 		helpers.GetEnv("DB_USERNAME"),
