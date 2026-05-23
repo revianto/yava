@@ -1,59 +1,44 @@
 export type RecipeVisibility = 'private' | 'public' | 'group'
 
-export interface User {
-  id: string
+export interface RecipeAuthor {
   name: string
-  email: string
-  avatarUrl?: string
+  initials: string
 }
 
-export interface RecipeType {
-  id: string
-  name: string
-  slug: string
-}
-
-export interface RecipeSubtype {
-  id: string
-  typeId: string
-  name: string
+export interface RecipeParams {
+  dose: string
+  yield: string
+  temp: string
+  grind: string
+  ratio: string
 }
 
 export interface RecipeSession {
-  id: string
-  recipeId: string
-  order: number
-  label: string
-  durationSeconds: number
-  waterMl?: number
-  notes?: string
+  kind: 'session'
+  name: string
+  duration: number
+  note?: string
 }
 
 export interface RecipeNote {
-  id: string
-  recipeId: string
-  order: number
+  kind: 'note'
   content: string
 }
 
+export type TimelineItem = RecipeSession | RecipeNote
+
 export interface Recipe {
   id: string
-  owner?: User
-  typeId: string
-  typeName: string
-  subtypeName?: string
-  title: string
-  description?: string
-  coffeeBeans?: string
-  coffeeGrams?: number
-  waterMl?: number
-  grindSize?: string
-  waterTempC?: number
+  type: string
+  subtype: string
+  name: string
+  description: string
+  tags: string[]
   visibility: RecipeVisibility
   isDefault: boolean
-  isArchived: boolean
-  sessions: RecipeSession[]
-  notes: RecipeNote[]
-  totalDurationSeconds: number
-  createdAt: string
+  params: RecipeParams
+  timeline: TimelineItem[]
+  author: RecipeAuthor
+  saves: number
+  lastBrewed: string
 }

@@ -1,141 +1,118 @@
-import type { Recipe, RecipeType, User } from '@/types'
+import type { Recipe } from '@/types'
 
-export const mockUser: User = {
-  id: '1',
-  name: 'Revianto',
-  email: 'revianto.dev@gmail.com',
-  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=revianto',
+export const RECIPES: Recipe[] = [
+  {
+    id: 'r-flair-espresso',
+    type: 'Espresso', subtype: 'Manual (Flair)',
+    name: 'Flair Espresso 18g / 36g',
+    description: 'Pre-infusion lembut, ekstraksi 9 bar. Profil seimbang dengan bittersweet finish — cocok untuk single origin Ethiopia.',
+    tags: ['ESPRESSO', 'MANUAL'],
+    visibility: 'private', isDefault: false,
+    params: { dose: '18g', yield: '36g', temp: '94°C', grind: 'Fine', ratio: '1:2' },
+    timeline: [
+      { kind: 'session', name: 'Pre-infusion', duration: 12, note: 'Tekan perlahan — biarkan bubuk basah merata sebelum tekanan penuh.' },
+      { kind: 'session', name: 'Extraction', duration: 28, note: 'Tekanan stabil 9 bar. Awasi warna mengalir dari emas ke creamy hazel.' },
+      { kind: 'note', content: 'Diamkan crema 10 detik sebelum disajikan. Jangan diaduk.' },
+    ],
+    author: { name: 'Kamu', initials: 'YV' }, saves: 12, lastBrewed: 'Kemarin',
+  },
+  {
+    id: 'r-v60-light',
+    type: 'V60', subtype: 'Regular Drip',
+    name: 'V60 Light Roast 15g / 250ml',
+    description: 'Pour-over standar untuk light roast. Profil cerah, body ringan, finish clean — disesuaikan untuk bean Kenya AA atau Ethiopia natural.',
+    tags: ['V60', 'DEFAULT'],
+    visibility: 'public', isDefault: true,
+    params: { dose: '15g', yield: '250ml', temp: '92°C', grind: 'Medium-Fine', ratio: '1:16' },
+    timeline: [
+      { kind: 'session', name: 'Blooming', duration: 45, note: 'Tuang 45ml air. Gentle swirl. Nikmati aromanya.' },
+      { kind: 'session', name: 'First Pour', duration: 100, note: 'Pour ke 150ml total. Lingkaran konsentris dari tengah.' },
+      { kind: 'session', name: 'Second Pour', duration: 100, note: 'Lanjut ke 250ml. Pour stabil, jangan menyentuh dinding filter.' },
+    ],
+    author: { name: 'Sistem YAVA', initials: 'YA' }, saves: 248, lastBrewed: '3 hari lalu',
+  },
+  {
+    id: 'r-aeropress-inv',
+    type: 'Aeropress', subtype: 'Inverted',
+    name: 'Aeropress Inverted 17g / 220ml',
+    description: 'Metode inverted dengan steep 90 detik. Body lebih kaya dari V60, sweetness terangkat — cocok untuk medium roast.',
+    tags: ['AEROPRESS', 'INVERTED'],
+    visibility: 'group', isDefault: false,
+    params: { dose: '17g', yield: '220ml', temp: '85°C', grind: 'Medium', ratio: '1:13' },
+    timeline: [
+      { kind: 'session', name: 'Steep', duration: 90, note: 'Pour 220ml, aduk 3x dengan stirrer. Diamkan.' },
+      { kind: 'session', name: 'Press', duration: 30, note: 'Flip dan press perlahan selama 30 detik. Berhenti saat dengar hiss.' },
+    ],
+    author: { name: 'Komunitas Senayan', initials: 'KS' }, saves: 67, lastBrewed: 'Seminggu lalu',
+  },
+  {
+    id: 'r-coldbrew',
+    type: 'Cold Brew', subtype: 'Slow Drip',
+    name: 'Cold Brew Slow Drip 50g / 500ml',
+    description: 'Drip selama 8 jam pada suhu ruang. Smooth, low-acid, dark chocolate finish. Bisa disimpan 5 hari di kulkas.',
+    tags: ['COLD BREW'],
+    visibility: 'public', isDefault: false,
+    params: { dose: '50g', yield: '500ml', temp: '22°C', grind: 'Coarse', ratio: '1:10' },
+    timeline: [
+      { kind: 'note', content: 'Setup tower drip. Pastikan keran terkalibrasi 1 tetes / 2 detik.' },
+      { kind: 'session', name: 'Slow Drip', duration: 60, note: 'Demo singkat — versi sebenarnya 8 jam.' },
+    ],
+    author: { name: 'Kopi Ruang', initials: 'KR' }, saves: 89, lastBrewed: '—',
+  },
+  {
+    id: 'r-kopisusu',
+    type: 'Espresso', subtype: 'Milk-based',
+    name: 'Kopi Susu Aren 18g + 150ml',
+    description: 'Double shot dengan gula aren dan susu segar dingin. Manis seimbang, untuk diminum dingin di siang hari.',
+    tags: ['ESPRESSO', 'GRUP'],
+    visibility: 'group', isDefault: false,
+    params: { dose: '18g', yield: '36g', temp: '94°C', grind: 'Fine', ratio: '1:2' },
+    timeline: [
+      { kind: 'session', name: 'Pre-infusion', duration: 10, note: 'Basahi puck merata.' },
+      { kind: 'session', name: 'Extraction', duration: 25, note: '9 bar, target 36g.' },
+      { kind: 'note', content: 'Tuang 20ml syrup gula aren ke gelas.' },
+      { kind: 'note', content: 'Tambahkan ice cubes, lalu susu segar 150ml. Aduk perlahan.' },
+    ],
+    author: { name: 'Kamu', initials: 'YV' }, saves: 34, lastBrewed: '2 hari lalu',
+  },
+  {
+    id: 'r-v60-dark',
+    type: 'V60', subtype: 'Regular Drip',
+    name: 'V60 Dark Roast 18g / 270ml',
+    description: 'Untuk dark roast lokal: Toraja Sapan atau Aceh Gayo. Suhu lebih rendah, ratio sedikit lebih ringan untuk hindari over-extraction.',
+    tags: ['V60'],
+    visibility: 'private', isDefault: false,
+    params: { dose: '18g', yield: '270ml', temp: '88°C', grind: 'Medium', ratio: '1:15' },
+    timeline: [
+      { kind: 'session', name: 'Blooming', duration: 40, note: 'Tuang 50ml. Swirl ringan.' },
+      { kind: 'session', name: 'First Pour', duration: 90, note: 'Lanjut ke 160ml.' },
+      { kind: 'session', name: 'Second Pour', duration: 80, note: 'Tutup di 270ml. Total brew 3:30.' },
+    ],
+    author: { name: 'Kamu', initials: 'YV' }, saves: 5, lastBrewed: 'Hari ini',
+  },
+]
+
+export const TYPES = ['Semua', 'Espresso', 'V60', 'Aeropress', 'Cold Brew']
+export const HERO_RECIPE_ID = 'r-v60-light'
+
+export const totalDuration = (r: Recipe) =>
+  r.timeline.filter((s): s is import('@/types').RecipeSession => s.kind === 'session').reduce((a, s) => a + s.duration, 0)
+
+export const sessionCount = (r: Recipe) =>
+  r.timeline.filter((s) => s.kind === 'session').length
+
+export const tagVariant = (label: string): string => {
+  const k = label.toUpperCase()
+  if (k === 'ESPRESSO') return 'espresso'
+  if (k === 'V60') return 'v60'
+  if (k.includes('COLD')) return 'cold'
+  if (k === 'GRUP') return 'group'
+  return 'default'
 }
 
-export const recipeTypes: RecipeType[] = [
-  { id: '1', name: 'V60', slug: 'v60' },
-  { id: '2', name: 'Espresso', slug: 'espresso' },
-  { id: '3', name: 'Chemex', slug: 'chemex' },
-  { id: '4', name: 'Aeropress', slug: 'aeropress' },
-  { id: '5', name: 'French Press', slug: 'french-press' },
-  { id: '6', name: 'Moka Pot', slug: 'moka-pot' },
-]
-
-export const mockRecipes: Recipe[] = [
-  {
-    id: '1',
-    typeId: '1',
-    typeName: 'V60',
-    subtypeName: 'Pour Over',
-    title: 'V60 Classic — 4:6 Method',
-    description: 'Metode 4:6 dari Tetsu Kasuya. Mudah dikontrol, konsisten, dan bisa disesuaikan ke sweet atau bright.',
-    coffeeBeans: 'Ethiopia Yirgacheffe',
-    coffeeGrams: 20,
-    waterMl: 300,
-    grindSize: 'Medium-coarse',
-    waterTempC: 93,
-    visibility: 'public',
-    isDefault: true,
-    isArchived: false,
-    totalDurationSeconds: 210,
-    createdAt: '2024-01-15T08:00:00Z',
-    sessions: [
-      { id: 's1', recipeId: '1', order: 1, label: 'Bloom', durationSeconds: 45, waterMl: 60, notes: 'Tuang merata, tunggu bloom' },
-      { id: 's2', recipeId: '1', order: 2, label: 'Pour 1', durationSeconds: 45, waterMl: 60 },
-      { id: 's3', recipeId: '1', order: 3, label: 'Pour 2', durationSeconds: 45, waterMl: 60 },
-      { id: 's4', recipeId: '1', order: 4, label: 'Pour 3', durationSeconds: 45, waterMl: 60 },
-      { id: 's5', recipeId: '1', order: 5, label: 'Pour 4', durationSeconds: 30, waterMl: 60 },
-    ],
-    notes: [
-      { id: 'n1', recipeId: '1', order: 6, content: 'Pastikan filter sudah dibilas dengan air panas sebelum mulai.' },
-    ],
-  },
-  {
-    id: '2',
-    typeId: '2',
-    typeName: 'Espresso',
-    title: 'Espresso Double Shot',
-    description: 'Standard double shot espresso. Rasio 1:2, waktu ekstraksi 25–30 detik.',
-    coffeeBeans: 'Brazil Santos Blend',
-    coffeeGrams: 18,
-    waterMl: 36,
-    grindSize: 'Fine',
-    waterTempC: 92,
-    visibility: 'private',
-    isDefault: false,
-    isArchived: false,
-    totalDurationSeconds: 30,
-    createdAt: '2024-02-10T09:00:00Z',
-    sessions: [
-      { id: 's6', recipeId: '2', order: 1, label: 'Pre-infusion', durationSeconds: 5, notes: '3–5 bar' },
-      { id: 's7', recipeId: '2', order: 2, label: 'Extraction', durationSeconds: 25, notes: '9 bar' },
-    ],
-    notes: [],
-  },
-  {
-    id: '3',
-    typeId: '3',
-    typeName: 'Chemex',
-    title: 'Chemex Weekend Brew',
-    description: 'Slow brew untuk weekend. Clean cup, jernih, dan floral.',
-    coffeeBeans: 'Colombia Huila',
-    coffeeGrams: 30,
-    waterMl: 500,
-    grindSize: 'Coarse',
-    waterTempC: 95,
-    visibility: 'public',
-    isDefault: false,
-    isArchived: false,
-    totalDurationSeconds: 300,
-    createdAt: '2024-03-05T07:30:00Z',
-    sessions: [
-      { id: 's8', recipeId: '3', order: 1, label: 'Bloom', durationSeconds: 60, waterMl: 90 },
-      { id: 's9', recipeId: '3', order: 2, label: 'First Pour', durationSeconds: 120, waterMl: 200 },
-      { id: 's10', recipeId: '3', order: 3, label: 'Second Pour', durationSeconds: 120, waterMl: 210 },
-    ],
-    notes: [
-      { id: 'n2', recipeId: '3', order: 4, content: 'Gunakan filter Chemex asli untuk hasil terbaik.' },
-      { id: 'n3', recipeId: '3', order: 5, content: 'Total brew time sekitar 4–5 menit.' },
-    ],
-  },
-  {
-    id: '4',
-    typeId: '4',
-    typeName: 'Aeropress',
-    title: 'Aeropress Inverted',
-    description: 'Teknik inverted untuk kontrol penuh. Full immersion, hasil bold.',
-    coffeeBeans: 'Guatemala Antigua',
-    coffeeGrams: 15,
-    waterMl: 200,
-    grindSize: 'Medium',
-    waterTempC: 80,
-    visibility: 'private',
-    isDefault: false,
-    isArchived: false,
-    totalDurationSeconds: 150,
-    createdAt: '2024-03-20T10:00:00Z',
-    sessions: [
-      { id: 's11', recipeId: '4', order: 1, label: 'Bloom', durationSeconds: 30, waterMl: 30 },
-      { id: 's12', recipeId: '4', order: 2, label: 'Fill', durationSeconds: 60, waterMl: 170 },
-      { id: 's13', recipeId: '4', order: 3, label: 'Stir & Press', durationSeconds: 60 },
-    ],
-    notes: [],
-  },
-  {
-    id: '5',
-    typeId: '1',
-    typeName: 'V60',
-    title: 'V60 Light Roast Bright',
-    description: 'Untuk single origin light roast. Acidity ditonjolkan.',
-    coffeeBeans: 'Kenya AA',
-    coffeeGrams: 15,
-    waterMl: 250,
-    grindSize: 'Medium',
-    waterTempC: 96,
-    visibility: 'public',
-    isDefault: false,
-    isArchived: true,
-    totalDurationSeconds: 180,
-    createdAt: '2024-04-01T06:00:00Z',
-    sessions: [
-      { id: 's14', recipeId: '5', order: 1, label: 'Bloom', durationSeconds: 45, waterMl: 45 },
-      { id: 's15', recipeId: '5', order: 2, label: 'Main Pour', durationSeconds: 135, waterMl: 205 },
-    ],
-    notes: [],
-  },
-]
+export const fmt = (seconds: number): string => {
+  const s = Math.max(0, Math.round(seconds))
+  const m = Math.floor(s / 60)
+  const r = s % 60
+  return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`
+}

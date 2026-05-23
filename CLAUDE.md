@@ -294,3 +294,76 @@ Lihat `Example` sebagai full-stack pattern: `routes/Example.go` → `C_Example.g
 - Profile photo: upload langsung dari browser ke presigned URL
 - Step images (future): sama, presigned URL dari API
 - Format yang didukung: JPG, PNG, WebP. Max 5MB per file.
+
+---
+
+## Design Brief — "Italian Zine / Bold & Playful"
+
+Prototype reference: `yava-handoff.zip` (tersimpan di `/tmp/yava-handoff/yava/project/`). Link claude.ai: `https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2`
+
+### Filosofi
+
+Light-first, minimalist-brutal. Mengambil inspirasi dari majalah zine Italia tahun 80-90an: tipografi besar, kontras tinggi, whitespace dramatis, pop warna yang purposeful. Bukan warm/coffee-themed — justru unexpected cold palette dengan accent merah coral.
+
+### Palet Warna
+
+| Token | Hex | Penggunaan |
+|---|---|---|
+| `--coral-red` | `#FF3D5A` | CTA utama, aksen, dot, highlight |
+| `--electric` | `#3D2BFF` | Grup/komunitas, card electric |
+| `--powder` | `#F7C8D8` | Timer text on dark, soft accents |
+| `--lilac` | `#C4B4FF` | Subtext on electric/dark, grup tag |
+| `--deep-ink` | `#1A1530` | Teks utama, dark cards, borders |
+| `--abyss` | `#120F22` | Full-bleed brewing mode background |
+| `--lavender-fog` | `#F2EEF8` | App background (bukan putih!) |
+| `--grid-paper` | `#F5EEDC` | Editorial brewing variant background |
+| `--hairline` | `#E8E0F0` | Dividers, borders cards |
+| `--muted` | `#6B6480` | Secondary text |
+
+### Tipografi
+
+- **Font**: General Sans (dari fontshare.com) — bukan Inter/Geist
+- `.t-display`: 64px, weight 700, kerning -.025em — untuk hero headings
+- `.t-h1` → `.t-h3`: 34px / 22px / 17px, weight 700
+- `.t-label`: 11px, uppercase, letter-spacing .06em — untuk kicker/kategori
+- `.t-mono-num`: tabular-nums — untuk semua angka timer dan stats
+- **Jangan gunakan** weight di bawah 500 untuk UI text penting
+
+### Komponen Utama
+
+**Topnav** — bukan sidebar. Logo kiri, nav links tengah, search + bell + CTA + avatar kanan. Max-width 1280px container.
+
+**Tags** — pill shape (`border-radius: 99px`). Setiap kategori punya warna spesifik: espresso=coral, v60=electric, cold=ink, grup=lilac. Jangan pakai warna generik.
+
+**Cards** — tiga surface: `.card` (white), `.card--dark` (deep-ink), `.card--electric` (electric blue). Semua corner `border-radius: 12–16px`.
+
+**Buttons** — selalu rounded pill. Primary=coral-red, secondary=bordered, light-primary=ink bg+coral text (untuk dark surfaces).
+
+**Params grid** — 5 kolom untuk dose/yield/temp/grind/ratio. Selalu tampil dalam grid, bukan list.
+
+**Step list** — numbered bubbles (dark ink), note rows pakai dashed border bubble "N". Gunakan grid `48px 1fr 80px`.
+
+### Brewing Mode — 3 Variants
+
+| Variant | Background | Timer Size | Layout |
+|---|---|---|---|
+| `focus` | `--abyss` (#120F22) | 260px | Centered, single dominant timer |
+| `ambient` | `--lavender-fog` | 200px | 2-col: dark card kiri, sidecar kiri |
+| `editorial` | `--grid-paper` + grid lines | 360px | Asymmetric: text kiri, abyss block kanan |
+
+Countdown selalu: 3 → 2 → 1 dengan `.count-pop` animation (pop in, hold, fade out) per detik 800ms.
+
+### Animasi
+
+- `.fade-in`: page transitions (200ms)
+- `.count-pop`: countdown number (800ms scale+fade)
+- `.session-enter`: sesi baru muncul (300ms slide up)
+- `.live-dot`: pulsing dot merah untuk status aktif (1.2s loop)
+
+### Aturan Tambahan
+
+1. **Warna latar selalu** `--lavender-fog` (#F2EEF8) — BUKAN putih atau abu-abu
+2. **Logo** selalu YAVA + dot coral-red: `YAVA<span class="dot">.</span>`
+3. Angka timer selalu gunakan `t-mono-num` (tabular-nums) agar tidak melompat-lompat
+4. Brewing mode **fullscreen** (`position: fixed; inset: 0`), di atas semua konten
+5. Untuk komponen baru, cek dulu CSS class yang sudah ada di `globals.css` sebelum membuat style baru
