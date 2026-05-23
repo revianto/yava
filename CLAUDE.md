@@ -227,6 +227,65 @@ Link: https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2?file=YAVA+
 - **Frontend (TS)**: camelCase untuk variabel/fungsi, PascalCase untuk komponen
 - **API paths**: kebab-case (`/recipe-types` bukan `/recipeTypes`)
 - **Branch**: `feat/P1-03-google-oauth`, `fix/P2-01-timer-drift`
+- **Go files**: prefix per layer — `C_` Controller, `S_` Service, `Rp_` Repository, `M_` Model, `Rs_` Resource
+
+---
+
+## Backend Architecture (`apps/api`)
+
+Framework: Fiber v2 + GORM + Goose (migrations). Semua operasi write **wajib** dalam transaction.
+
+### Layer Structure
+
+| Layer | Folder | Fungsi |
+|---|---|---|
+| Controller | `app/controllers/` | Parse request, panggil Service, return response |
+| Service | `app/services/` | Logika bisnis & validasi |
+| Repository | `app/repositories/` | Query builder ke DB |
+| Model | `app/models/` | Struct tabel + implementasi `CoreModels` |
+| Resource | `app/resources/` | Transform data ke format response |
+| Middleware | `app/middlewares/` | JWT auth, rate limiter, locale, DB context |
+| Routes | `routes/` | Definisi endpoint per domain |
+
+### Request Flow
+
+```
+Request → Middleware → Controller → Service → Repository → Model
+                                                         ← Repository
+                                 ← Service (resource transform)
+       ← Response JSON
+```
+
+### Transaction Rule
+
+```go
+if txErr := tx.Transaction(func(tx *gorm.DB) error {
+    return tx.Create(&m).Error
+}); txErr != nil {
+    return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "gagal")
+}
+```
+
+### Route Pattern
+
+```
+GET|POST|PUT|DELETE /api/admin/:locale/{resource}
+```
+
+`:locale` = `id` atau `en` untuk lokalisasi pesan. Route protected pakai `middlewares.CheckUserToken()`.
+
+### API Response Format (framework)
+
+```json
+// List: { "data": [...], "meta": { "page": 1, "limit": 10, "total": 100, "total_pages": 10 } }
+// Single: { "data": { "id": "1", ... } }
+// Error: { "status": 422, "message": "...", "errors": { "field": ["msg"] } }
+// Delete: { "data": { "message": "Deleted successfully" } }
+```
+
+### Referensi Implementasi
+
+Lihat `Example` sebagai full-stack pattern: `routes/Example.go` → `C_Example.go` → `S_Example.go` → `Rp_Example.go` → `M_Example.go` → `Rs_Example.go`
 
 ---
 
