@@ -45,150 +45,148 @@ Link: https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2?file=YAVA+
 
 ## Task Breakdown
 
-### PHASE 0 — Project Setup
-
-- [ ] **P0-01** Init monorepo: buat folder `apps/web` dan `apps/api`
-- [ ] **P0-02** Setup Next.js App Router di `apps/web` (TypeScript, Tailwind CSS, shadcn/ui)
-- [ ] **P0-03** Setup Golang project di `apps/api` (Go modules, folder structure: `cmd/`, `internal/`, `pkg/`)
-- [ ] **P0-04** Buat `docker-compose.yml` untuk PostgreSQL lokal
-- [ ] **P0-05** Setup `.env.example` untuk web dan api
-- [ ] **P0-06** Setup ESLint + Prettier untuk web
-- [ ] **P0-07** Setup `golangci-lint` untuk api
+> **Strategi**: FE dikerjakan lebih dulu dengan mock data untuk memvalidasi flow dan design. BE menyusul setelah FE per phase selesai.
 
 ---
 
-### PHASE 1 — Auth + DB Schema + Recipe CRUD Dasar (Week 1–2)
+## FRONTEND (Next.js — `apps/web`)
 
-#### Backend (Golang)
+### PHASE 0 — Setup FE
 
-- [ ] **P1-01** Buat DB schema migration (tabel: `users`, `recipe_types`, `recipe_subtypes`, `recipes`, `recipe_sessions`, `recipe_notes`)
-- [ ] **P1-02** Buat semua DB indexes (lihat PRD §12.3)
-- [ ] **P1-03** Implementasi Google OAuth handler: `GET /auth/google` + `GET /auth/google/callback`
-- [ ] **P1-04** Implementasi JWT issue + store ke HttpOnly cookie
-- [ ] **P1-05** Implementasi `POST /auth/logout`
-- [ ] **P1-06** Buat JWT middleware untuk semua protected routes
-- [ ] **P1-07** Endpoint `GET /types` — list semua recipe types
-- [ ] **P1-08** Endpoint `GET /types/:id/subtypes` — list subtypes
-- [ ] **P1-09** Endpoint `POST /recipes` — create recipe (dengan sessions + notes)
-- [ ] **P1-10** Endpoint `GET /recipes` — list recipes (query: `visibility`, `type_id`, `page`, `limit`)
-- [ ] **P1-11** Endpoint `GET /recipes/:id` — detail recipe (sessions + notes ordered)
-- [ ] **P1-12** Endpoint `PUT /recipes/:id` — update recipe (owner only)
-- [ ] **P1-13** Seed data: recipe types (V60, Espresso, dll) + subtypes + default recipes
+- [x] **P0-01** Init monorepo: folder `apps/web` dan `apps/api`
+- [x] **P0-02** Setup Next.js App Router (TypeScript, Tailwind CSS, shadcn/ui)
+- [x] **P0-05** Setup `.env.example` untuk web
+- [x] **P0-06** Setup ESLint + Prettier
 
-#### Frontend (Next.js)
+### PHASE 1 — Auth + Recipe CRUD UI
 
-- [ ] **P1-14** Setup layout utama: sidebar/navbar, auth guard
-- [ ] **P1-15** Halaman login: tombol "Login with Google"
-- [ ] **P1-16** Handle OAuth callback, simpan session state
-- [ ] **P1-17** Dashboard: list resep milik user
-- [ ] **P1-18** Halaman create recipe (multi-step form: info dasar → sessions → notes → visibility)
-- [ ] **P1-19** Halaman detail recipe (tampilkan params, sessions, notes)
-- [ ] **P1-20** Halaman edit recipe
+- [x] **P1-14** Setup layout utama: topnav, route group `(app)`
+- [x] **P1-15** Halaman login: tombol "Login with Google"
+- [ ] **P1-16** Handle OAuth callback, simpan session state (tunggu BE P1-03)
+- [x] **P1-17** Dashboard: list resep milik user (mock)
+- [x] **P1-18** Halaman create recipe (multi-step form: info dasar → alur → visibilitas)
+- [x] **P1-19** Halaman detail recipe (params, sessions, notes — mock)
+- [x] **P1-20** Halaman edit recipe
 
----
+### PHASE 2 — Timer + Brewing Mode UI
 
-### PHASE 2 — Timer System + Brewing Mode (Week 3–4)
+- [x] **P2-01** `BrewingTimer`: countdown + `performance.now()`
+- [x] **P2-02** Auto-advance antar session (zero delay)
+- [x] **P2-03** Preparation countdown 3 detik
+- [x] **P2-04** Controls: Pause, Resume, Reset, Skip
+- [x] **P2-05** Progress bar per session + total
+- [x] **P2-06** Display `RecipeNote` di timeline (tanpa blok timer)
+- [x] **P2-07** Brewing Complete Screen (total waktu, Ulangi, Kembali)
+- [x] **P2-08** Full-screen brewing mode (`position: fixed`)
+- [x] **P2-09** Handle resep tanpa session (notes-only → checklist mode)
 
-- [ ] **P2-01** Komponen `BrewingTimer`: countdown timer menggunakan `performance.now()` (akurasi ±100ms)
-- [ ] **P2-02** Logika auto-advance antar session (zero delay)
-- [ ] **P2-03** Preparation countdown 3 detik sebelum session pertama ("Siapkan peralatan Anda...")
-- [ ] **P2-04** Controls: Pause, Resume, Reset, Skip Session
-- [ ] **P2-05** Progress bar per session
-- [ ] **P2-06** Display `RecipeNote` di posisi order-nya (tanpa blok timer)
-- [ ] **P2-07** Brewing Complete Screen: tampilkan total waktu, tombol "Ulangi" + "Kembali ke Resep"
-- [ ] **P2-08** Full-screen brewing mode (mobile-friendly)
-- [ ] **P2-09** Handle resep tanpa session (notes-only → checklist mode)
+### PHASE 3 — Explore + Archive/Duplicate UI
 
----
+- [x] **P3-05** Explore page: list public recipes + search + filter by type
+- [x] **P3-06** UI archive/restore recipe (kebab dropdown di detail page)
+- [x] **P3-07** UI duplicate recipe (konfirmasi + toast)
+- [x] **P3-08** Badge "ARSIP" + section terpisah di dashboard
+- [x] **P3-09** Badge "DEFAULT" untuk system recipes (via `isDefault`)
+- [x] **P3-10** Visibility selector di form create (Private / Public / Group)
 
-### PHASE 3 — Recipe Visibility + Explore + Duplicate (Week 5–6)
+### PHASE 4 — Group System UI
 
-#### Backend
+- [x] **P4-17** Halaman create group
+- [x] **P4-18** Halaman group detail: tabs (Resep / Members / Settings)
+- [x] **P4-19** UI join group via invite link
+- [x] **P4-20** UI submit recipe ke group (dari detail page)
+- [x] **P4-21** UI approve/reject pending recipes (admin view)
+- [x] **P4-22** UI manage members: list, remove, promote
+- [x] **P4-23** UI copy invite link
 
-- [ ] **P3-01** Endpoint `PATCH /recipes/:id/archive`
-- [ ] **P3-02** Endpoint `PATCH /recipes/:id/restore`
-- [ ] **P3-03** Endpoint `POST /recipes/:id/duplicate`
-- [ ] **P3-04** Filter list endpoint untuk public recipes (explore page)
+### PHASE 5 — Discussions + Notifikasi UI
 
-#### Frontend
+- [x] **P5-11** Komponen discussion thread (nested replies)
+- [x] **P5-12** UI pin/unpin comment (admin)
+- [x] **P5-13** Notification bell: badge unread count
+- [x] **P5-14** Notification dropdown: list + mark as read
 
-- [ ] **P3-05** Explore page: list public recipes + filter by type
-- [ ] **P3-06** UI untuk archive/restore recipe (kebab menu di detail page)
-- [ ] **P3-07** UI untuk duplicate recipe
-- [ ] **P3-08** Badge "Archived" di dashboard untuk resep yang diarsip
-- [ ] **P3-09** Badge "Default" untuk system recipes
-- [ ] **P3-10** Visibility selector di form create/edit (Private / Public / Group)
+### PHASE 6 — QA + Deploy FE
 
----
-
-### PHASE 4 — Group System (Week 7–9)
-
-#### Backend
-
-- [ ] **P4-01** DB migration: tabel `groups`, `group_members`, `group_recipes`
-- [ ] **P4-02** Endpoint `POST /groups` — create group
-- [ ] **P4-03** Endpoint `GET /groups/:id` — group detail
-- [ ] **P4-04** Endpoint `PUT /groups/:id` — update group (admin only)
-- [ ] **P4-05** Endpoint `DELETE /groups/:id` — disband group (founder only)
-- [ ] **P4-06** Endpoint `GET /groups/:id/members` — list members
-- [ ] **P4-07** Endpoint `POST /groups/:id/members` — join via invite code
-- [ ] **P4-08** Endpoint `DELETE /groups/:id/members/:uid` — remove member (admin)
-- [ ] **P4-09** Endpoint `PATCH /groups/:id/members/:uid/role` — ubah role (admin)
-- [ ] **P4-10** Endpoint `GET /groups/:id/recipes` — list active group recipes
-- [ ] **P4-11** Endpoint `GET /groups/:id/recipes/pending` — list pending (admin)
-- [ ] **P4-12** Endpoint `POST /groups/:id/recipes` — submit recipe ke group
-- [ ] **P4-13** Endpoint `PATCH /groups/:id/recipes/:rid/approve` — approve (admin)
-- [ ] **P4-14** Endpoint `PATCH /groups/:id/recipes/:rid/reject` — reject + reason (admin)
-- [ ] **P4-15** Endpoint `DELETE /groups/:id/recipes/:rid` — remove from group (admin)
-- [ ] **P4-16** Generate unique `invite_code` saat group dibuat
-
-#### Frontend
-
-- [ ] **P4-17** Halaman create group
-- [ ] **P4-18** Halaman group detail: tabs (Resep / Members / Settings)
-- [ ] **P4-19** UI join group via invite link
-- [ ] **P4-20** UI submit recipe ke group (dari detail page recipe)
-- [ ] **P4-21** UI approve/reject pending recipes (admin view)
-- [ ] **P4-22** UI manage members: list, remove, promote
-- [ ] **P4-23** UI copy invite link
+- [ ] **P6-02** E2E test: create + brew recipe flow
+- [ ] **P6-07** Setup Vercel deployment untuk web
 
 ---
 
-### PHASE 5 — Discussions + Notifications (Week 10–11)
+## BACKEND (Golang — `apps/api`)
 
-#### Backend
+### PHASE 0 — Setup BE
 
-- [ ] **P5-01** DB migration: tabel `discussions`, `notifications`
-- [ ] **P5-02** Endpoint `GET /groups/:id/recipes/:rid/discussions`
-- [ ] **P5-03** Endpoint `POST /groups/:id/recipes/:rid/discussions`
-- [ ] **P5-04** Endpoint `PATCH /groups/:id/recipes/:rid/discussions/:did/pin` (admin)
-- [ ] **P5-05** Endpoint `DELETE /groups/:id/recipes/:rid/discussions/:did`
-- [ ] **P5-06** Endpoint `GET /notifications`
-- [ ] **P5-07** Endpoint `PATCH /notifications/:id/read`
-- [ ] **P5-08** Endpoint `PATCH /notifications/read-all`
-- [ ] **P5-09** Trigger notifikasi: recipe approved/rejected, discussion reply
-- [ ] **P5-10** SSE atau WebSocket endpoint untuk push notifikasi realtime
+- [x] **P0-01** Init `apps/api` (Go modules, struktur folder)
+- [x] **P0-03** Folder structure: `app/controllers/`, `app/services/`, `app/repositories/`, dll
+- [x] **P0-04** `docker-compose.yml` untuk PostgreSQL lokal
+- [x] **P0-05** Setup `.env.example` untuk api
+- [ ] **P0-07** Setup `golangci-lint`
 
-#### Frontend
+### PHASE 1 — Auth + Recipe CRUD API
 
-- [ ] **P5-11** Komponen discussion thread (dengan nested replies)
-- [ ] **P5-12** UI pin/unpin comment (admin)
-- [ ] **P5-13** Notification bell di navbar: badge unread count
-- [ ] **P5-14** Notification dropdown/panel: list notifikasi, mark as read
+- [ ] **P1-01** DB schema migration: `recipe_types`, `recipe_subtypes`, `recipes`, `recipe_sessions`, `recipe_notes`
+- [ ] **P1-02** DB indexes (lihat PRD §12.3)
+- [ ] **P1-03** Google OAuth handler: `GET /auth/google` + `GET /auth/google/callback`
+- [ ] **P1-04** JWT issue + store ke HttpOnly cookie
+- [ ] **P1-05** `POST /auth/logout`
+- [x] **P1-06** JWT middleware (sudah ada `JwtAuth.go`)
+- [ ] **P1-07** `GET /types` — list recipe types
+- [ ] **P1-08** `GET /types/:id/subtypes`
+- [ ] **P1-09** `POST /recipes` — create (sessions + notes, dalam transaction)
+- [ ] **P1-10** `GET /recipes` — list (filter: `visibility`, `type_id`, pagination)
+- [ ] **P1-11** `GET /recipes/:id` — detail (sessions + notes ordered)
+- [ ] **P1-12** `PUT /recipes/:id` — update (owner only)
+- [ ] **P1-13** Seed: recipe types + subtypes + default recipes
 
----
+### PHASE 3 — Visibility + Archive API
 
-### PHASE 6 — QA + Deploy (Week 12)
+- [ ] **P3-01** `PATCH /recipes/:id/archive`
+- [ ] **P3-02** `PATCH /recipes/:id/restore`
+- [ ] **P3-03** `POST /recipes/:id/duplicate`
+- [ ] **P3-04** Filter public recipes untuk explore endpoint
+
+### PHASE 4 — Group System API
+
+- [ ] **P4-01** Migration: `groups`, `group_members`, `group_recipes`
+- [ ] **P4-02** `POST /groups`
+- [ ] **P4-03** `GET /groups/:id`
+- [ ] **P4-04** `PUT /groups/:id` (admin)
+- [ ] **P4-05** `DELETE /groups/:id` (founder)
+- [ ] **P4-06** `GET /groups/:id/members`
+- [ ] **P4-07** `POST /groups/:id/members` (join via invite code)
+- [ ] **P4-08** `DELETE /groups/:id/members/:uid` (admin)
+- [ ] **P4-09** `PATCH /groups/:id/members/:uid/role` (admin)
+- [ ] **P4-10** `GET /groups/:id/recipes`
+- [ ] **P4-11** `GET /groups/:id/recipes/pending` (admin)
+- [ ] **P4-12** `POST /groups/:id/recipes` — submit
+- [ ] **P4-13** `PATCH /groups/:id/recipes/:rid/approve`
+- [ ] **P4-14** `PATCH /groups/:id/recipes/:rid/reject`
+- [ ] **P4-15** `DELETE /groups/:id/recipes/:rid`
+- [ ] **P4-16** Generate unique `invite_code`
+
+### PHASE 5 — Discussions + Notifications API
+
+- [ ] **P5-01** Migration: `discussions`, `notifications`
+- [ ] **P5-02** `GET /groups/:id/recipes/:rid/discussions`
+- [ ] **P5-03** `POST /groups/:id/recipes/:rid/discussions`
+- [ ] **P5-04** `PATCH …/discussions/:did/pin` (admin)
+- [ ] **P5-05** `DELETE …/discussions/:did`
+- [ ] **P5-06** `GET /notifications`
+- [ ] **P5-07** `PATCH /notifications/:id/read`
+- [ ] **P5-08** `PATCH /notifications/read-all`
+- [ ] **P5-09** Trigger notifikasi (approved/rejected/reply)
+- [ ] **P5-10** SSE atau WebSocket untuk push notifikasi
+
+### PHASE 6 — QA + Deploy BE
 
 - [ ] **P6-01** E2E test: auth flow
-- [ ] **P6-02** E2E test: create + brew recipe
 - [ ] **P6-03** E2E test: group submission + approval flow
-- [ ] **P6-04** Performance test: API response time < 500ms
-- [ ] **P6-05** Security audit: JWT validation, ownership checks, input sanitization
+- [ ] **P6-04** Performance test: API response < 500ms
+- [ ] **P6-05** Security audit: JWT, ownership checks, sanitasi input
 - [ ] **P6-06** Rate limiting: `/auth/*` 10 req/min, `POST /recipes` 30 req/min
-- [ ] **P6-07** Setup Vercel deployment untuk web
-- [ ] **P6-08** Setup Docker + VPS deployment untuk api
-- [ ] **P6-09** Setup Cloudflare R2 bucket + upload profile photo
+- [ ] **P6-08** Docker + VPS deployment
+- [ ] **P6-09** Cloudflare R2 bucket + upload profile photo
 - [ ] **P6-10** Staging → Production sign-off
 
 ---
@@ -228,6 +226,9 @@ Link: https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2?file=YAVA+
 - **API paths**: kebab-case (`/recipe-types` bukan `/recipeTypes`)
 - **Branch**: `feat/P1-03-google-oauth`, `fix/P2-01-timer-drift`
 - **Go files**: prefix per layer — `C_` Controller, `S_` Service, `Rp_` Repository, `M_` Model, `Rs_` Resource
+- **DB tables**:
+  - `yv_cd_{{name}}` → master data / jarang berubah (contoh: `yv_cd_client`, `yv_cd_setting`, `yv_cd_recipe_type`)
+  - `yv_{{name}}` → data transaksional / sering diolah (contoh: `yv_recipe`, `yv_group`, `yv_notification`)
 
 ---
 

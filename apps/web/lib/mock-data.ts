@@ -1,4 +1,4 @@
-import type { Recipe } from '@/types'
+import type { Recipe, Group, Discussion, Notification } from '@/types'
 
 export const RECIPES: Recipe[] = [
   {
@@ -90,6 +90,160 @@ export const RECIPES: Recipe[] = [
     ],
     author: { name: 'Kamu', initials: 'YV' }, saves: 5, lastBrewed: 'Hari ini',
   },
+  {
+    id: 'r-chemex-medium',
+    type: 'V60', subtype: 'Chemex',
+    name: 'Chemex Medium Roast 30g / 500ml',
+    description: 'Chemex klasik untuk batch brewing. Filter tebal menghasilkan cup yang sangat bersih. Cocok untuk Papua Wamena atau Flores Bajawa.',
+    tags: ['V60', 'CHEMEX'],
+    visibility: 'public', isDefault: false,
+    params: { dose: '30g', yield: '500ml', temp: '93°C', grind: 'Medium-Coarse', ratio: '1:16' },
+    timeline: [
+      { kind: 'session', name: 'Bloom', duration: 45, note: 'Tuang 80ml, tunggu gas CO2 keluar.' },
+      { kind: 'session', name: 'Pour 1', duration: 90, note: 'Naik ke 250ml, lingkaran dari tengah.' },
+      { kind: 'session', name: 'Pour 2', duration: 90, note: 'Tutup di 500ml. Jangan rush.' },
+    ],
+    author: { name: 'Kopi Ruang', initials: 'KR' }, saves: 42, lastBrewed: '—',
+  },
+  {
+    id: 'r-espresso-default',
+    type: 'Espresso', subtype: 'Machine',
+    name: 'Espresso Standar 18g / 36g',
+    description: 'Resep espresso baseline untuk mesin semi-automatic. Titik awal yang baik untuk dial-in bean apapun.',
+    tags: ['ESPRESSO', 'DEFAULT'],
+    visibility: 'public', isDefault: true,
+    params: { dose: '18g', yield: '36g', temp: '93°C', grind: 'Fine', ratio: '1:2' },
+    timeline: [
+      { kind: 'session', name: 'Pre-infusion', duration: 8, note: 'Low pressure 3 bar, basahi puck.' },
+      { kind: 'session', name: 'Extraction', duration: 25, note: 'Naik ke 9 bar. Target 36g dalam 25–28 detik.' },
+    ],
+    author: { name: 'Sistem YAVA', initials: 'YA' }, saves: 312, lastBrewed: '—',
+  },
+  {
+    id: 'r-moka-pot',
+    type: 'Espresso', subtype: 'Moka Pot',
+    name: 'Moka Pot Toraja 20g / 120ml',
+    description: 'Moka pot intensitas tinggi. Api kecil, tutup terbuka — untuk dark roast Toraja Sapan yang butuh kontrol suhu ekstra.',
+    tags: ['ESPRESSO', 'MOKA'],
+    visibility: 'public', isDefault: false,
+    params: { dose: '20g', yield: '120ml', temp: '80°C', grind: 'Fine-Medium', ratio: '1:6' },
+    timeline: [
+      { kind: 'note', content: 'Isi boiler dengan air panas (bukan dingin) untuk hindari over-extraction.' },
+      { kind: 'session', name: 'Brew', duration: 90, note: 'Api kecil, tutup dibuka. Angkat saat mulai mendesis.' },
+    ],
+    author: { name: 'Rina S.', initials: 'RS' }, saves: 78, lastBrewed: '—',
+  },
+  {
+    id: 'r-aeropress-default',
+    type: 'Aeropress', subtype: 'Standard',
+    name: 'Aeropress Standar 15g / 200ml',
+    description: 'Resep Aeropress klasik — standard method, bukan inverted. Hasil konsisten untuk berbagai profil roast.',
+    tags: ['AEROPRESS', 'DEFAULT'],
+    visibility: 'public', isDefault: true,
+    params: { dose: '15g', yield: '200ml', temp: '80°C', grind: 'Medium-Fine', ratio: '1:13' },
+    timeline: [
+      { kind: 'session', name: 'Bloom', duration: 30, note: 'Tuang 50ml, aduk singkat 3x.' },
+      { kind: 'session', name: 'Steep', duration: 60, note: 'Tuang sisa air ke 200ml.' },
+      { kind: 'session', name: 'Press', duration: 30, note: 'Press perlahan dalam 20–30 detik.' },
+    ],
+    author: { name: 'Sistem YAVA', initials: 'YA' }, saves: 189, lastBrewed: '—',
+  },
+  {
+    id: 'r-archived-old',
+    type: 'V60', subtype: 'Regular Drip',
+    name: 'V60 Percobaan Lama 12g / 200ml',
+    description: 'Resep percobaan yang sudah tidak aktif. Ratio terlalu ringan untuk biji yang sekarang dipakai.',
+    tags: ['V60'],
+    visibility: 'private', isDefault: false, isArchived: true,
+    params: { dose: '12g', yield: '200ml', temp: '90°C', grind: 'Medium', ratio: '1:16' },
+    timeline: [
+      { kind: 'session', name: 'Bloom', duration: 30, note: '' },
+      { kind: 'session', name: 'Pour', duration: 120, note: '' },
+    ],
+    author: { name: 'Kamu', initials: 'YV' }, saves: 0, lastBrewed: '3 bulan lalu',
+  },
+]
+
+export const GROUPS: Group[] = [
+  {
+    id: 'g-senayan',
+    name: 'Komunitas Senayan',
+    description: 'Komunitas kopi rumahan di sekitar Senayan & Kebayoran. Sharing resep, tips dial-in, dan occasional cupping session.',
+    inviteCode: 'SNYN2026',
+    myRole: 'member',
+    createdAt: 'Jan 2026',
+    members: [
+      { id: 'm-1', name: 'Rizki W.', initials: 'RW', role: 'founder', joinedAt: 'Jan 2026' },
+      { id: 'm-2', name: 'Adi P.', initials: 'AP', role: 'admin', joinedAt: 'Jan 2026' },
+      { id: 'm-3', name: 'Maya S.', initials: 'MS', role: 'member', joinedAt: 'Feb 2026' },
+      { id: 'm-4', name: 'Dian K.', initials: 'DK', role: 'member', joinedAt: 'Feb 2026' },
+      { id: 'm-5', name: 'Budi H.', initials: 'BH', role: 'member', joinedAt: 'Mar 2026' },
+      { id: 'm-me', name: 'Nadira (Kamu)', initials: 'ND', role: 'member', joinedAt: 'Mar 2026' },
+    ],
+    recipes: [
+      { id: 'gr-1', recipeId: 'r-aeropress-inv', recipeName: 'Aeropress Inverted 17g / 220ml', recipeType: 'Aeropress', recipeSubtype: 'Inverted', submittedBy: 'Kamu', submittedByInitials: 'ND', submittedAt: '2 minggu lalu', status: 'active' },
+      { id: 'gr-2', recipeId: 'r-kopisusu', recipeName: 'Kopi Susu Aren 18g + 150ml', recipeType: 'Espresso', recipeSubtype: 'Milk-based', submittedBy: 'Maya S.', submittedByInitials: 'MS', submittedAt: '3 minggu lalu', status: 'active' },
+      { id: 'gr-3', recipeId: 'r-v60-dark', recipeName: 'V60 Dark Roast 18g / 270ml', recipeType: 'V60', recipeSubtype: 'Regular Drip', submittedBy: 'Adi P.', submittedByInitials: 'AP', submittedAt: '1 bulan lalu', status: 'active' },
+      { id: 'gr-4', recipeId: 'r-coldbrew', recipeName: 'Cold Brew Slow Drip 50g / 500ml', recipeType: 'Cold Brew', recipeSubtype: 'Slow Drip', submittedBy: 'Budi H.', submittedByInitials: 'BH', submittedAt: '5 hari lalu', status: 'pending' },
+      { id: 'gr-5', recipeId: 'r-moka-pot', recipeName: 'Moka Pot Toraja 20g / 120ml', recipeType: 'Espresso', recipeSubtype: 'Moka Pot', submittedBy: 'Dian K.', submittedByInitials: 'DK', submittedAt: '2 hari lalu', status: 'pending' },
+      { id: 'gr-6', recipeId: 'r-flair-espresso', recipeName: 'Flair Espresso 18g / 36g', recipeType: 'Espresso', recipeSubtype: 'Manual (Flair)', submittedBy: 'Rizki W.', submittedByInitials: 'RW', submittedAt: '1 bulan lalu', status: 'rejected', rejectionReason: 'Ratio kurang sesuai untuk biji Sumatra — coba 1:2.2 dulu.' },
+    ],
+  },
+  {
+    id: 'g-barista',
+    name: 'YAVA Barista Club',
+    description: 'Grup kecil untuk eksperimen resep advanced. Filter, espresso, dan cold brew specialty.',
+    inviteCode: 'YBC2026',
+    myRole: 'founder',
+    createdAt: 'Apr 2026',
+    members: [
+      { id: 'b-me', name: 'Nadira (Kamu)', initials: 'ND', role: 'founder', joinedAt: 'Apr 2026' },
+      { id: 'b-2', name: 'Sinta R.', initials: 'SR', role: 'admin', joinedAt: 'Apr 2026' },
+      { id: 'b-3', name: 'Hendra P.', initials: 'HP', role: 'member', joinedAt: 'Mei 2026' },
+      { id: 'b-4', name: 'Layla N.', initials: 'LN', role: 'member', joinedAt: 'Mei 2026' },
+    ],
+    recipes: [
+      { id: 'br-1', recipeId: 'r-v60-light', recipeName: 'V60 Light Roast 15g / 250ml', recipeType: 'V60', recipeSubtype: 'Regular Drip', submittedBy: 'Kamu', submittedByInitials: 'ND', submittedAt: '1 minggu lalu', status: 'active' },
+      { id: 'br-2', recipeId: 'r-chemex-medium', recipeName: 'Chemex Medium Roast 30g / 500ml', recipeType: 'V60', recipeSubtype: 'Chemex', submittedBy: 'Sinta R.', submittedByInitials: 'SR', submittedAt: '3 hari lalu', status: 'pending' },
+    ],
+  },
+]
+
+export const DISCUSSIONS: Discussion[] = [
+  {
+    id: 'd-1', recipeId: 'r-aeropress-inv',
+    authorName: 'Rizki W.', authorInitials: 'RW',
+    content: 'Coba pre-infusion sedikit lebih lama (15 detik) untuk Toraja Sapan — sweetness terangkat lebih bagus.',
+    createdAt: '2 hari lalu', pinned: true,
+    replies: [
+      { id: 'd-1-r1', authorName: 'Maya S.', authorInitials: 'MS', content: 'Setuju! Aku coba dan beda banget hasilnya. Pre-infusion 15-20 detik jadi sweet spot.', createdAt: 'kemarin' },
+    ],
+  },
+  {
+    id: 'd-2', recipeId: 'r-aeropress-inv',
+    authorName: 'Maya S.', authorInitials: 'MS',
+    content: 'Aku coba di rumah, ratio 1:2.2 untuk Sumatra Lintong rasanya lebih balance. Mau coba update?',
+    createdAt: 'kemarin', pinned: false,
+    replies: [],
+  },
+  {
+    id: 'd-3', recipeId: 'r-kopisusu',
+    authorName: 'Dito A.', authorInitials: 'DA',
+    content: 'Syrup gula aren berapa ml tepatnya? 20ml terasa kurang manis buat aku.',
+    createdAt: '3 hari lalu', pinned: false,
+    replies: [
+      { id: 'd-3-r1', authorName: 'Kamu', authorInitials: 'ND', content: 'Aku biasanya 25ml kalau pakai bean yang lebih asam seperti Kenya. Coba adjust sesuai selera.', createdAt: '3 hari lalu' },
+      { id: 'd-3-r2', authorName: 'Dito A.', authorInitials: 'DA', content: 'Thanks! 25ml pas banget.', createdAt: '2 hari lalu' },
+    ],
+  },
+]
+
+export const NOTIFICATIONS: Notification[] = [
+  { id: 'n-1', type: 'approved', title: 'Resep disetujui', body: 'V60 Light Roast 15g / 250ml kamu disetujui di Komunitas Senayan.', link: '/groups/g-senayan', read: false, createdAt: '1 jam lalu' },
+  { id: 'n-2', type: 'reply', title: 'Balas diskusi', body: 'Maya S. membalas komentar kamu di Aeropress Inverted 17g / 220ml.', link: '/recipes/r-aeropress-inv', read: false, createdAt: '3 jam lalu' },
+  { id: 'n-3', type: 'joined', title: 'Anggota baru', body: 'Layla N. bergabung ke YAVA Barista Club.', link: '/groups/g-barista', read: false, createdAt: 'kemarin' },
+  { id: 'n-4', type: 'rejected', title: 'Resep ditolak', body: 'Cold Brew Slow Drip ditolak di Komunitas Senayan dengan catatan: perlu revisi parameter grind.', link: '/groups/g-senayan', read: true, createdAt: '2 hari lalu' },
+  { id: 'n-5', type: 'approved', title: 'Resep disetujui', body: 'Kopi Susu Aren 18g + 150ml kamu disetujui di Komunitas Senayan.', link: '/groups/g-senayan', read: true, createdAt: '3 hari lalu' },
 ]
 
 export const TYPES = ['Semua', 'Espresso', 'V60', 'Aeropress', 'Cold Brew']

@@ -39,4 +39,9 @@ export const IconClose    = (p: IconProps) => <Icon {...p}><path d="M6 6l12 12M1
 export const IconEdit     = (p: IconProps) => <Icon {...p}><path d="M4 20h4l10 -10 -4 -4L4 16v4z" /><path d="m13.5 6.5 4 4" /></Icon>
 export const IconShare    = (p: IconProps) => <Icon {...p}><circle cx="6" cy="12" r="3" /><circle cx="18" cy="6" r="3" /><circle cx="18" cy="18" r="3" /><path d="m8.6 13.5 6.8 3.5M8.6 10.5l6.8 -3.5" /></Icon>
 export const IconKebab    = (p: IconProps) => <Icon {...p}><circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" /></Icon>
-export const IconBookmark = (p: IconProps) => <Icon {...p}><path d="M6 4h12v17l-6 -4 -6 4V4z" /></Icon>
+export const IconBookmark  = (p: IconProps) => <Icon {...p}><path d="M6 4h12v17l-6 -4 -6 4V4z" /></Icon>
+export const IconArchive   = (p: IconProps) => <Icon {...p}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1 -1V8" /><path d="M10 12h4" /></Icon>
+export const IconRestore   = (p: IconProps) => <Icon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></Icon>
+export const IconCopy      = (p: IconProps) => <Icon {...p}><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></Icon>
+export const IconCompass   = (p: IconProps) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="m14.5 9.5 -5 5" /><path d="m9.5 9.5 5 5" /></Icon>
+export const IconGlobe     = (p: IconProps) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18" /></Icon>

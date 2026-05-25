@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { RECIPES, fmt } from '@/lib/mock-data'
-import type { RecipeSession } from '@/types'
+import type { RecipeSession, RecipeNote } from '@/types'
 import {
   IconPlay, IconPause, IconSkip, IconReset, IconClose, IconCheck,
 } from '@/components/icons'
@@ -471,6 +471,96 @@ function EditorialView({ engine, recipe, sessions, onExit }: { engine: EngineSta
   )
 }
 
+// ─── Notes-only checklist ────────────────────────────────────────────────────
+function NotesChecklistView({ recipe, notes, onExit }: { recipe: (typeof RECIPES)[0]; notes: RecipeNote[]; onExit: () => void }) {
+  const [checked, setChecked] = useState<Set<number>>(new Set())
+  const done = checked.size === notes.length
+
+  const toggle = (i: number) => setChecked((prev) => {
+    const s = new Set(prev)
+    s.has(i) ? s.delete(i) : s.add(i)
+    return s
+  })
+
+  return (
+    <div className="brewing" style={{ background: 'var(--abyss)', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+      <div className="row between" style={{ padding: '20px 32px', flexShrink: 0 }}>
+        <div className="row gap-3">
+          <span className="logo" style={{ fontSize: 20, color: '#fff' }}>YAVA<span className="dot">.</span></span>
+          <span className="t-small muted-dark" style={{ marginLeft: 4 }}>{recipe.name}</span>
+        </div>
+        <button className="icon-btn icon-btn--dark" onClick={onExit}><IconClose size={18} /></button>
+      </div>
+
+      <div className="grow" style={{ padding: '0 32px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 640, margin: '0 auto', width: '100%' }}>
+        {!done ? (
+          <>
+            <div className="t-label" style={{ color: 'var(--lilac)', marginBottom: 12 }}>
+              {checked.size} / {notes.length} selesai
+            </div>
+            <div className="t-h1" style={{ color: '#fff', marginBottom: 32, fontSize: 40 }}>
+              {recipe.name}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {notes.map((n, i) => (
+                <button
+                  key={i}
+                  onClick={() => toggle(i)}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 16,
+                    background: checked.has(i) ? 'rgba(225,191,145,.08)' : 'rgba(255,255,255,.06)',
+                    border: checked.has(i) ? '1.5px solid rgba(225,191,145,.30)' : '1.5px solid rgba(255,255,255,.10)',
+                    borderRadius: 14, padding: '16px 20px', cursor: 'pointer', textAlign: 'left',
+                    transition: 'all 180ms',
+                  }}
+                >
+                  <span style={{
+                    width: 26, height: 26, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                    border: checked.has(i) ? 'none' : '2px solid rgba(255,255,255,.30)',
+                    background: checked.has(i) ? 'var(--coral-red)' : 'transparent',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 180ms',
+                  }}>
+                    {checked.has(i) && <IconCheck size={14} />}
+                  </span>
+                  <span style={{
+                    fontSize: 15, lineHeight: 1.6,
+                    color: checked.has(i) ? 'rgba(225,191,145,.55)' : 'rgba(255,255,255,.90)',
+                    textDecoration: checked.has(i) ? 'line-through' : 'none',
+                    transition: 'all 180ms',
+                  }}>
+                    {n.content}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="col center session-enter" style={{ alignItems: 'center', textAlign: 'center' }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: 'var(--coral-red)', display: 'inline-flex',
+              alignItems: 'center', justifyContent: 'center', marginBottom: 28,
+            }}>
+              <IconCheck size={32} />
+            </div>
+            <div className="t-label" style={{ color: 'var(--powder)', marginBottom: 16 }}>Semua langkah selesai</div>
+            <div className="t-display" style={{ fontSize: 72, color: '#fff', letterSpacing: '-.03em', lineHeight: .95, marginBottom: 32 }}>
+              Selamat menikmati<span style={{ color: 'var(--coral-red)' }}>.</span>
+            </div>
+            <div className="row gap-2">
+              <button className="btn btn--primary btn--lg" onClick={() => setChecked(new Set())}>
+                <IconReset size={16} /> Ulangi
+              </button>
+              <button className="btn btn--secondary btn--lg" onClick={onExit}>Kembali ke resep</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Root ────────────────────────────────────────────────────────────────────
 export default function BrewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -484,7 +574,10 @@ export default function BrewPage({ params }: { params: Promise<{ id: string }> }
     () => recipe.timeline.filter((s): s is RecipeSession => s.kind === 'session'),
     [recipe]
   )
-  if (sessions.length === 0) notFound()
+  const notes = useMemo(
+    () => recipe.timeline.filter((s): s is RecipeNote => s.kind === 'note'),
+    [recipe]
+  )
 
   const engine = useBrewingEngine(sessions)
 
@@ -500,6 +593,10 @@ export default function BrewPage({ params }: { params: Promise<{ id: string }> }
   }, [engine.isPaused]) // eslint-disable-line
 
   const onExit = () => router.push(`/recipes/${id}`)
+
+  if (sessions.length === 0)
+    return <NotesChecklistView recipe={recipe} notes={notes} onExit={onExit} />
+
   const props = { engine, recipe, sessions, onExit }
 
   if (variant === 'ambient') return <AmbientView {...props} />

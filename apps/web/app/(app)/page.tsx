@@ -18,13 +18,20 @@ function RecipeCard({ recipe, onClick }: { recipe: (typeof RECIPES)[0]; onClick:
   const total = totalDuration(recipe)
   const sessions = sessionCount(recipe)
   return (
-    <button className="recipe-card" onClick={onClick}>
+    <button
+      className="recipe-card"
+      onClick={onClick}
+      style={{ opacity: recipe.isArchived ? 0.6 : 1 }}
+    >
       <div className="row gap-2 wrap" style={{ marginBottom: 2 }}>
         {recipe.tags.slice(0, 2).map((t) => (
           <span key={t} className={`tag tag--${tagVariant(t)}`}>{t}</span>
         ))}
         <span style={{ flex: 1 }} />
-        <VisibilityTag visibility={recipe.visibility} isDefault={recipe.isDefault} />
+        {recipe.isArchived
+          ? <span className="tag" style={{ background: 'var(--grid-paper)', color: 'var(--muted)', border: '1px solid var(--hairline)' }}>ARSIP</span>
+          : <VisibilityTag visibility={recipe.visibility} isDefault={recipe.isDefault} />
+        }
       </div>
       <div className="recipe-card__title">{recipe.name}</div>
       <div className="recipe-card__meta">
@@ -99,9 +106,15 @@ const ACTIVITY = [
 export default function Dashboard() {
   const router = useRouter()
   const [activeType, setActiveType] = useState('Semua')
+  const [showArchived, setShowArchived] = useState(false)
   const hero = RECIPES.find((r) => r.id === HERO_RECIPE_ID)!
 
-  const filtered = RECIPES.filter((r) => activeType === 'Semua' || r.type === activeType)
+  const activeRecipes = RECIPES.filter((r) =>
+    !r.isArchived && (activeType === 'Semua' || r.type === activeType)
+  )
+  const archivedRecipes = RECIPES.filter((r) =>
+    r.isArchived && (activeType === 'Semua' || r.type === activeType)
+  )
 
   return (
     <main className="container col gap-4" style={{ paddingTop: 16, gap: 48 }}>
@@ -113,7 +126,7 @@ export default function Dashboard() {
             <div className="t-display" style={{ fontSize: 48, letterSpacing: '-.025em' }}>
               Pagi, Nadira.<span style={{ color: 'var(--coral-red)' }}>.</span>
             </div>
-            <div className="t-body muted" style={{ marginTop: 6 }}>3 resep aktif · 12 sesi brewing minggu ini.</div>
+            <div className="t-body muted" style={{ marginTop: 6 }}>{activeRecipes.length} resep aktif · 12 sesi brewing minggu ini.</div>
           </div>
           <div className="row gap-2">
             <button className="btn btn--light-secondary"><IconBookmark size={16} /> Favorit</button>
@@ -148,7 +161,7 @@ export default function Dashboard() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {filtered.map((r) => (
+          {activeRecipes.map((r) => (
             <RecipeCard key={r.id} recipe={r} onClick={() => router.push(`/recipes/${r.id}`)} />
           ))}
           <Link
@@ -173,6 +186,30 @@ export default function Dashboard() {
             <span className="t-caption" style={{ color: 'var(--muted)' }}>Tambahkan sesi timer atau notes</span>
           </Link>
         </div>
+
+        {/* Arsip section */}
+        {archivedRecipes.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            <button
+              onClick={() => setShowArchived((v) => !v)}
+              style={{ background: 'transparent', border: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, padding: 0, marginBottom: showArchived ? 16 : 0 }}
+            >
+              <span className="t-label" style={{ color: 'var(--muted)' }}>
+                Arsip ({archivedRecipes.length})
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>
+                {showArchived ? '▲' : '▼'}
+              </span>
+            </button>
+            {showArchived && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                {archivedRecipes.map((r) => (
+                  <RecipeCard key={r.id} recipe={r} onClick={() => router.push(`/recipes/${r.id}`)} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Activity + Group */}
