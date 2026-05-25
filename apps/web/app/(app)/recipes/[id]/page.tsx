@@ -8,6 +8,7 @@ import { RECIPES, totalDuration, sessionCount, tagVariant, fmt } from '@/lib/moc
 import {
   IconPlay, IconArrowLeft, IconStar, IconShare, IconEdit, IconKebab,
 } from '@/components/icons'
+import { CozyMugSteam, CozyPlants } from '@/components/cozy-decorations'
 
 function VisibilityTag({ visibility, isDefault }: { visibility: string; isDefault: boolean }) {
   if (isDefault) return <span className="tag tag--default">DEFAULT</span>
@@ -66,7 +67,8 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
       </button>
 
       {/* Title block */}
-      <div className="row between" style={{ alignItems: 'flex-start', gap: 32, marginBottom: 32 }}>
+      <div className="row between" style={{ alignItems: 'flex-start', gap: 32, marginBottom: 32, position: 'relative' }}>
+        <CozyPlants />
         <div style={{ maxWidth: 720 }}>
           <div className="row gap-2 wrap" style={{ marginBottom: 14 }}>
             {recipe.tags.map((t) => (
@@ -154,7 +156,8 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
 
         {/* Start CTA */}
         <aside>
-          <div className="card card--dark card--hero" style={{ padding: 28, position: 'sticky', top: 24 }}>
+          <div className="card card--dark card--hero" style={{ padding: 28, position: 'sticky', top: 24, overflow: 'hidden' }}>
+            <CozyMugSteam />
             <div className="t-label muted-dark" style={{ marginBottom: 12 }}>Siap brewing</div>
             <div className="t-h1" style={{ color: '#fff', marginBottom: 6 }}>
               {Math.floor(total / 60)}<span className="muted-dark" style={{ fontSize: 22 }}>m</span>{' '}

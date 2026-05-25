@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { RECIPES, TYPES, HERO_RECIPE_ID, totalDuration, sessionCount, tagVariant, fmt } from '@/lib/mock-data'
 import { IconPlay, IconPlus, IconArrow, IconCheck, IconEdit, IconShare, IconGroup, IconBookmark } from '@/components/icons'
+import { CozyFigureMug, CozyBranch } from '@/components/cozy-decorations'
 
 function VisibilityTag({ visibility, isDefault }: { visibility: string; isDefault: boolean }) {
   if (isDefault) return <span className="tag tag--default">DEFAULT</span>
@@ -48,6 +49,7 @@ function HeroRecipeCard({ recipe, onStart, onOpen }: { recipe: (typeof RECIPES)[
   const sessions = sessionCount(recipe)
   return (
     <div className="card card--dark card--hero" style={{ position: 'relative', overflow: 'hidden', padding: 40 }}>
+      <CozyFigureMug />
       <div aria-hidden style={{
         position: 'absolute', right: -60, top: -60, width: 320, height: 320, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(61,43,255,.45), transparent 70%)',
@@ -198,7 +200,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card card--electric card--hero" style={{ padding: 28, position: 'relative' }}>
+        <div className="card card--electric card--hero" style={{ padding: 28, position: 'relative', overflow: 'hidden' }}>
+          <CozyBranch />
           <span className="tag" style={{ background: 'rgba(255,255,255,.12)', color: 'var(--lilac)', border: '0' }}>GRUP AKTIF</span>
           <div className="t-h1" style={{ color: '#fff', marginTop: 16, lineHeight: 1.05 }}>Komunitas<br />Senayan</div>
           <div className="t-small" style={{ color: 'var(--lilac)', marginTop: 8, marginBottom: 24 }}>

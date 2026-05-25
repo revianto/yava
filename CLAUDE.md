@@ -297,73 +297,85 @@ Lihat `Example` sebagai full-stack pattern: `routes/Example.go` → `C_Example.g
 
 ---
 
-## Design Brief — "Italian Zine / Bold & Playful"
+## Design Brief — "Cozy / Forest Green + Cream + Warm Tan"
 
-Prototype reference: `yava-handoff.zip` (tersimpan di `/tmp/yava-handoff/yava/project/`). Link claude.ai: `https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2`
+> **Aktif**: tema Cozy diterapkan di codebase. Prototype asli (Italian Zine) tersimpan di `/tmp/cozy-extract/yava/project/YAVA Prototype.html` untuk referensi.
+
+Handoff bundle: `/tmp/cozy-extract/yava/project/` — termasuk `YAVA Prototype - Cozy.html`, `styles-cozy.css`, `cozy-decorations.js`.
 
 ### Filosofi
 
-Light-first, minimalist-brutal. Mengambil inspirasi dari majalah zine Italia tahun 80-90an: tipografi besar, kontras tinggi, whitespace dramatis, pop warna yang purposeful. Bukan warm/coffee-themed — justru unexpected cold palette dengan accent merah coral.
+Café reading-nook hangat. Forest green sebagai primer, cream sebagai latar, warm tan sebagai aksi. Serif hangat (Spectral) untuk headlines, Manrope untuk UI. Radius lebih besar, warm shadow, paper-grain halus di latar dan dark surface. Tidak brutal — homey.
 
 ### Palet Warna
 
 | Token | Hex | Penggunaan |
 |---|---|---|
-| `--coral-red` | `#FF3D5A` | CTA utama, aksen, dot, highlight |
-| `--electric` | `#3D2BFF` | Grup/komunitas, card electric |
-| `--powder` | `#F7C8D8` | Timer text on dark, soft accents |
-| `--lilac` | `#C4B4FF` | Subtext on electric/dark, grup tag |
-| `--deep-ink` | `#1A1530` | Teks utama, dark cards, borders |
-| `--abyss` | `#120F22` | Full-bleed brewing mode background |
-| `--lavender-fog` | `#F2EEF8` | App background (bukan putih!) |
-| `--grid-paper` | `#F5EEDC` | Editorial brewing variant background |
-| `--hairline` | `#E8E0F0` | Dividers, borders cards |
-| `--muted` | `#6B6480` | Secondary text |
+| `--coral-red` | `#AD8257` | CTA utama, aksen, dot, highlight (warm tan) |
+| `--coral-deep` | `#8C6741` | Hover state primary button |
+| `--electric` | `#2D524A` | Grup/komunitas, card electric (forest green) |
+| `--powder` | `#E1BF91` | Timer numerals on dark surfaces |
+| `--lilac` | `#E1BF91` | Subtext on dark/electric surfaces (= powder) |
+| `--deep-ink` | `#2D524A` | Teks utama, dark cards (forest green) |
+| `--abyss` | `#1B342E` | Full-bleed brewing mode background |
+| `--lavender-fog` | `#EEEEEC` | App background (cream, bukan putih!) |
+| `--grid-paper` | `#CBC0AC` | Editorial brewing bg, tag grup (sage oat) |
+| `--hairline` | `#DDD3BE` | Dividers, borders cards |
+| `--muted` | `#8A8273` | Secondary text |
+| `--white` (surface) | `#FBF8F1` | Card background (warm off-white) |
 
 ### Tipografi
 
-- **Font**: General Sans (dari fontshare.com) — bukan Inter/Geist
-- `.t-display`: 64px, weight 700, kerning -.025em — untuk hero headings
-- `.t-h1` → `.t-h3`: 34px / 22px / 17px, weight 700
-- `.t-label`: 11px, uppercase, letter-spacing .06em — untuk kicker/kategori
-- `.t-mono-num`: tabular-nums — untuk semua angka timer dan stats
-- **Jangan gunakan** weight di bawah 500 untuk UI text penting
+- **Display/H1/H2**: Spectral (serif, italic untuk logo) — weight 600
+- **UI**: Manrope — weight 400–700
+- `.t-display`: 64px, Spectral 600, kerning -.025em
+- `.t-h1` / `.t-h2`: 34px / 22px, Spectral 600
+- `.t-h3`: 17px, Manrope 700
+- `.t-label`: 11px, uppercase, letter-spacing .12em — kicker/kategori
+- `.t-mono-num`: tabular-nums — semua angka timer dan stats
+- **Logo**: Spectral italic, weight 600, letter-spacing -.03em
 
 ### Komponen Utama
 
-**Topnav** — bukan sidebar. Logo kiri, nav links tengah, search + bell + CTA + avatar kanan. Max-width 1280px container.
+**Topnav** — bukan sidebar. Logo kiri (Spectral italic), nav links tengah, search + bell + CTA + avatar kanan.
 
-**Tags** — pill shape (`border-radius: 99px`). Setiap kategori punya warna spesifik: espresso=coral, v60=electric, cold=ink, grup=lilac. Jangan pakai warna generik.
+**Tags** — pill shape. Cozy: espresso=tan, v60=forest+lilac, cold=abyss, grup=grid-paper/sage.
 
-**Cards** — tiga surface: `.card` (white), `.card--dark` (deep-ink), `.card--electric` (electric blue). Semua corner `border-radius: 12–16px`.
+**Cards** — `.card` (#FBF8F1, border-radius 18px), `.card--dark` (forest green, 22px, film grain overlay), `.card--electric` (abyss bg, lilac text). Dark surfaces punya `::after` grain pseudo-element — jangan hapus.
 
-**Buttons** — selalu rounded pill. Primary=coral-red, secondary=bordered, light-primary=ink bg+coral text (untuk dark surfaces).
+**Buttons** — pill. Primary=tan (#AD8257), light-primary=forest ink bg+lilac text, secondary=bordered forest.
 
-**Params grid** — 5 kolom untuk dose/yield/temp/grind/ratio. Selalu tampil dalam grid, bukan list.
+**Params grid** — 5 kolom, background #FBF8F1.
 
-**Step list** — numbered bubbles (dark ink), note rows pakai dashed border bubble "N". Gunakan grid `48px 1fr 80px`.
+**Step list** — `.step__num` pakai forest green bg + lilac text.
+
+### Cozy Decorations
+
+SVG dekorasi di `components/cozy-decorations.tsx`. Semua `position: absolute`, parent harus `position: relative; overflow: hidden`.
+
+| Komponen | Lokasi |
+|---|---|
+| `<CozyFigureMug />` | `.card--dark.card--hero` di dashboard (sosok + mug) |
+| `<CozyBranch />` | `.card--electric` (kartu grup) — ranting kopi + cherry |
+| `<CozyMugSteam />` | `.card--dark.card--hero` di recipe detail (cangkir samping) |
+| `<CozyPlants />` | Title row di recipe detail (monstera trio) |
+| `<CozyFigureWalking />` | Coral complete block di editorial brewing mode |
 
 ### Brewing Mode — 3 Variants
 
 | Variant | Background | Timer Size | Layout |
 |---|---|---|---|
-| `focus` | `--abyss` (#120F22) | 260px | Centered, single dominant timer |
-| `ambient` | `--lavender-fog` | 200px | 2-col: dark card kiri, sidecar kiri |
+| `focus` | `--abyss` (#1B342E) | 260px | Centered, cream-tan timer on dark green |
+| `ambient` | `--lavender-fog` | 200px | 2-col: dark card kiri, sidecar kanan |
 | `editorial` | `--grid-paper` + grid lines | 360px | Asymmetric: text kiri, abyss block kanan |
 
-Countdown selalu: 3 → 2 → 1 dengan `.count-pop` animation (pop in, hold, fade out) per detik 800ms.
-
-### Animasi
-
-- `.fade-in`: page transitions (200ms)
-- `.count-pop`: countdown number (800ms scale+fade)
-- `.session-enter`: sesi baru muncul (300ms slide up)
-- `.live-dot`: pulsing dot merah untuk status aktif (1.2s loop)
+Countdown: 3 → 2 → 1 dengan `.count-pop` 800ms. Timer numerals pakai `--powder` (#E1BF91).
 
 ### Aturan Tambahan
 
-1. **Warna latar selalu** `--lavender-fog` (#F2EEF8) — BUKAN putih atau abu-abu
-2. **Logo** selalu YAVA + dot coral-red: `YAVA<span class="dot">.</span>`
-3. Angka timer selalu gunakan `t-mono-num` (tabular-nums) agar tidak melompat-lompat
-4. Brewing mode **fullscreen** (`position: fixed; inset: 0`), di atas semua konten
-5. Untuk komponen baru, cek dulu CSS class yang sudah ada di `globals.css` sebelum membuat style baru
+1. **Warna latar selalu** `--lavender-fog` (#EEEEEC) dengan paper-grain — BUKAN putih murni
+2. **Logo** selalu Spectral italic: `YAVA<span class="dot">.</span>` — dot pakai `--coral-red` (#AD8257)
+3. Angka timer selalu `t-mono-num` (tabular-nums)
+4. Brewing mode **fullscreen** (`position: fixed; inset: 0`)
+5. Dark cards (`.card--dark`, `.card--abyss`) punya `::after` grain — anak langsung harus `position: relative; z-index: 1` agar tidak tertutup grain (sudah di-handle oleh `> *` selector di globals.css)
+6. Untuk komponen baru, cek dulu class yang ada di `globals.css` sebelum membuat style baru

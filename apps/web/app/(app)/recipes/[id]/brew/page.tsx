@@ -9,6 +9,7 @@ import type { RecipeSession } from '@/types'
 import {
   IconPlay, IconPause, IconSkip, IconReset, IconClose, IconCheck,
 } from '@/components/icons'
+import { CozyFigureWalking } from '@/components/cozy-decorations'
 
 type Phase = 'countdown' | 'running' | 'paused' | 'complete'
 type BrewVariant = 'focus' | 'ambient' | 'editorial'
@@ -443,7 +444,8 @@ function EditorialView({ engine, recipe, sessions, onExit }: { engine: EngineSta
                 <button className="btn btn--secondary btn--lg" onClick={onExit}>Kembali ke resep</button>
               </div>
             </div>
-            <div style={{ background: 'var(--coral-red)', color: '#fff', borderRadius: 16, padding: 40, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 480 }}>
+            <div style={{ background: 'var(--coral-red)', color: '#fff', borderRadius: 16, padding: 40, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 480, position: 'relative', overflow: 'hidden' }}>
+              <CozyFigureWalking />
               <div className="t-label">RINGKASAN</div>
               <div className="col gap-3">
                 <div>
