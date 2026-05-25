@@ -240,30 +240,55 @@ Framework: Fiber v2 + GORM + Goose (migrations). Semua operasi write **wajib** d
 
 | Layer | Folder | Fungsi |
 |---|---|---|
-| Controller | `app/controllers/` | Parse request, panggil Service, return response |
-| Service | `app/services/` | Logika bisnis & validasi |
-| Repository | `app/repositories/` | Query builder ke DB |
-| Model | `app/models/` | Struct tabel + implementasi `CoreModels` |
-| Resource | `app/resources/` | Transform data ke format response |
+| Controller | `app/controllers/` | Terima HTTP request, panggil Service, kembalikan response |
+| Service | `app/services/` | Logika bisnis, validasi input, orkestrasi proses |
+| Repository | `app/repositories/` | Query builder & custom query ke database |
+| Model | `app/models/` | Struct tabel DB + implementasi `CoreModels` interface |
+| Resource | `app/resources/` | Transform data ke format response API |
 | Middleware | `app/middlewares/` | JWT auth, rate limiter, locale, DB context |
-| Routes | `routes/` | Definisi endpoint per domain |
+| Routes | `routes/` | Definisi endpoint dan pengelompokan route |
+| Helpers | `helpers/` | Utility: converter, validator, JWT, bcrypt, dsb |
+| Lang | `lang/` | Pesan lokalisasi (error message dalam id/en/dll) |
+| Exceptions | `exceptions/` | Format standar error response |
+| Cmd | `cmd/migrate/` | Perintah migrasi database (goose) |
+| Database | `database/` | Koneksi DB global (`database.DB`) |
+| Public | `public/` | Static files (img, template) |
+| Docs | `docs/` | Dokumentasi API (Swagger, dsb) |
+
+### Naming Convention (file prefix)
+
+| Tipe | Prefix | Contoh |
+|---|---|---|
+| Controller | `C_` | `C_Example.go` |
+| Service | `S_` | `S_Example.go` |
+| Repository | `Rp_` | `Rp_Example.go` |
+| Model | `M_` | `M_Example.go` |
+| Resource | `Rs_` | `Rs_Example.go` |
 
 ### Request Flow
 
 ```
-Request → Middleware → Controller → Service → Repository → Model
-                                                         ← Repository
-                                 ← Service (resource transform)
-       ← Response JSON
+Request
+  → Middleware (JWT auth, locale, DB context)
+    → Controller (parse body/params)
+      → Service (validasi, logika bisnis)
+        → Repository (query DB)
+          → Model (struct + scopes)
+        ← Repository
+      ← Service
+    ← Controller (resource transform)
+  → Response JSON
 ```
 
 ### Transaction Rule
+
+Semua operasi write (`Create`, `Update`, `Delete`) **wajib** dalam `tx.Transaction()`. Framework sudah memasang callback GORM yang memblokir write di luar transaction.
 
 ```go
 if txErr := tx.Transaction(func(tx *gorm.DB) error {
     return tx.Create(&m).Error
 }); txErr != nil {
-    return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "gagal")
+    return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "gagal membuat data")
 }
 ```
 
@@ -284,9 +309,105 @@ GET|POST|PUT|DELETE /api/admin/:locale/{resource}
 // Delete: { "data": { "message": "Deleted successfully" } }
 ```
 
-### Referensi Implementasi
+### Template Wajib — Contoh Lengkap per Layer
 
-Lihat `Example` sebagai full-stack pattern: `routes/Example.go` → `C_Example.go` → `S_Example.go` → `Rp_Example.go` → `M_Example.go` → `Rs_Example.go`
+Ketika membuat endpoint baru, **wajib** mengikuti pola ini. Ganti `Example`/`ExampleModel`/`tr_examples` dengan nama resource baru.
+
+**routes/Example.go**
+```go
+func ExampleRoutes(r fiber.Router) {
+    example := r.Group("example")
+    example.Get("/", controllers.ExampleList)
+    example.Get("/:id", controllers.ExampleShow)
+    example.Post("/", controllers.ExampleCreate)
+    example.Put("/:id", controllers.ExampleUpdate)
+    example.Delete("/:id", controllers.ExampleDelete)
+}
+```
+
+**app/controllers/C_Example.go** — parse → service → resource, tidak ada logika bisnis
+```go
+func ExampleList(c *fiber.Ctx) error {
+    result, err := services.ExampleList(getDB(c), getBodyData(c), c, getLocale(c))
+    if err != nil {
+        return exceptions.ResponseErrorException(c, err.(exceptions.AppError))
+    }
+    return c.JSON(resources.ExampleResource(c, result))
+}
+```
+
+**app/services/S_Example.go** — validasi + logika bisnis + transaction
+```go
+func ExampleCreate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (any, any) {
+    if _, err := models.Validate(c, data, new(ValidateExampleCreate), locale); err != nil {
+        return nil, err
+    }
+    m := models.ExampleModel{Name: helpers.Conv(data["name"]).String()}
+    if txErr := tx.Transaction(func(tx *gorm.DB) error {
+        return tx.Create(&m).Error
+    }); txErr != nil {
+        return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "failed to create "+m.ModulName())
+    }
+    return repositories.ExampleSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+        return db.Where(models.ExampleModel{Id: m.Id})
+    })
+}
+```
+
+**app/repositories/Rp_Example.go** — gunakan helper `GetIndexData` / `GetSingleData` / `GetMultipleData`
+```go
+func ExampleIndex(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (models.IndexData, any) {
+    return models.GetIndexData(tx, data, c, locale, models.ExampleModel{})
+}
+func ExampleSingle(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, where func(db *gorm.DB) *gorm.DB) (map[string]any, any) {
+    return models.GetSingleData(tx, data, c, locale, where, models.ExampleModel{})
+}
+```
+
+**app/models/M_Example.go** — implementasi `CoreModels` (GetSelect, Searchable, Sortable, Join, Option)
+```go
+type ExampleModel struct {
+    Id   int    `json:"id"`
+    Name string `json:"name"`
+}
+func (ExampleModel) TableName() string { return "tr_examples" }
+func (ExampleModel) ModulName() string { return "Example" }
+func (s ExampleModel) ScopesGetSelect(data map[string]any) map[string]string {
+    return map[string]string{"id": "tr_examples.id", "name": "tr_examples.name"}
+}
+func (s ExampleModel) ScopesSearchableFields(data map[string]any) map[string]SearchableFields {
+    return map[string]SearchableFields{
+        "id":   {Operators: []string{"=", "!="}},
+        "name": {Operators: []string{"=", "like"}},
+    }
+}
+func (s ExampleModel) ScopesSortbleFields(data map[string]any) map[string]bool {
+    return map[string]bool{"id": true, "name": true}
+}
+func (s ExampleModel) ScopeJoin(data map[string]any) func(*gorm.DB) *gorm.DB {
+    return func(tx *gorm.DB) *gorm.DB { return tx }
+}
+func (s ExampleModel) ScopeOption(data map[string]any) func(*gorm.DB) *gorm.DB {
+    return func(tx *gorm.DB) *gorm.DB { return tx }
+}
+func (s *ExampleModel) BeforeCreate(tx *gorm.DB) error { return AutoFillCreate(s, tx) }
+func (s *ExampleModel) BeforeUpdate(tx *gorm.DB) error { return AutoFillUpdate(s, tx) }
+func (s *ExampleModel) BeforeDelete(tx *gorm.DB) error { return AutoFillDelete(s, tx) }
+```
+
+**app/resources/Rs_Example.go** — gunakan `ToResource(c, data, fn)` wrapper
+```go
+func ExampleResource(c *fiber.Ctx, data any) any {
+    return ToResource(c, data, ExampleSingleResource)
+}
+func ExampleSingleResource(c *fiber.Ctx, data any) ResponseExample {
+    dataMap, _ := data.(map[string]any)
+    return ResponseExample{
+        Id:   helpers.Conv(dataMap["id"]).String(),
+        Name: helpers.Conv(dataMap["name"]).String(),
+    }
+}
+```
 
 ---
 

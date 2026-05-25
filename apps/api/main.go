@@ -155,6 +155,7 @@ func ConnDB() {
 		sslmode,
 		dbTz,
 	)
+	// nosemgrep: go.secrets.gorm.gorm-hardcoded-secret.gorm-hardcoded-secret
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")

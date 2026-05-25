@@ -1,72 +1,88 @@
 package repositories
 
 import (
+	"encoding/json"
+	"math"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/models"
+	"github.com/revianto/yava/api/exceptions"
+	"github.com/revianto/yava/api/helpers"
 	"gorm.io/gorm"
 )
 
-type RecipeListParams struct {
-	OwnerId    *int64
-	Visibility *string
-	TypeId     *int64
-	Page       int
-	Limit      int
+func recipeToMap(r models.Recipe) map[string]any {
+	b, _ := json.Marshal(r)
+	var m map[string]any
+	json.Unmarshal(b, &m)
+	return m
 }
 
-func RecipeList(db *gorm.DB, p RecipeListParams) ([]models.Recipe, int64, error) {
+func RecipeIndex(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (models.IndexData, any) {
 	var recipes []models.Recipe
 	var total int64
 
-	q := db.Model(&models.Recipe{}).
+	q := tx.Model(&models.Recipe{}).
 		Preload("Type").Preload("Subtype").Preload("Owner").
 		Where("yv_recipe.deleted_at IS NULL")
 
-	if p.OwnerId != nil {
-		q = q.Where("owner_id = ?", *p.OwnerId)
+	if v, _ := data["visibility"].(string); v != "" {
+		q = q.Where("visibility = ?", v)
 	}
-	if p.Visibility != nil {
-		q = q.Where("visibility = ?", *p.Visibility)
+	if tid := helpers.Conv(data["type_id"]).Int64(); tid > 0 {
+		q = q.Where("type_id = ?", tid)
 	}
-	if p.TypeId != nil {
-		q = q.Where("type_id = ?", *p.TypeId)
+	if mine, _ := data["mine"].(bool); mine {
+		uid := helpers.Conv(data["owner_id"]).Int64()
+		if uid > 0 {
+			q = q.Where("owner_id = ?", uid)
+		}
 	}
 
 	q.Count(&total)
 
-	offset := (p.Page - 1) * p.Limit
-	err := q.Order("created_at DESC").Offset(offset).Limit(p.Limit).Find(&recipes).Error
-	return recipes, total, err
+	page := helpers.Conv(data["page"]).Default(c.Query("page", "1")).Int()
+	limit := helpers.Conv(data["limit"]).Default(c.Query("limit", "20")).Int()
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+
+	offset := (page - 1) * limit
+	if err := q.Order("yv_recipe.created_at DESC").Offset(offset).Limit(limit).Find(&recipes).Error; err != nil {
+		return models.IndexData{}, exceptions.ErrorException(c, fiber.StatusInternalServerError, "Gagal mengambil daftar resep")
+	}
+
+	items := make([]any, len(recipes))
+	for i, r := range recipes {
+		items[i] = recipeToMap(r)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	return models.IndexData{
+		Data: items,
+		Meta: models.Pagination{Page: page, Limit: limit, Total: int(total), TotalPages: totalPages},
+	}, nil
 }
 
-func RecipeById(db *gorm.DB, id int64) (*models.Recipe, error) {
+func RecipeSingle(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, where func(*gorm.DB) *gorm.DB) (map[string]any, any) {
 	var recipe models.Recipe
-	err := db.Preload("Type").Preload("Subtype").Preload("Owner").
+	q := tx.Preload("Type").Preload("Subtype").Preload("Owner").
 		Preload("Sessions", func(db *gorm.DB) *gorm.DB { return db.Order("sort_order ASC") }).
 		Preload("Notes", func(db *gorm.DB) *gorm.DB { return db.Order("sort_order ASC") }).
-		Where("id = ? AND deleted_at IS NULL", id).
-		First(&recipe).Error
-	if err != nil {
-		return nil, err
+		Where("yv_recipe.deleted_at IS NULL")
+	if where != nil {
+		q = where(q)
 	}
-	return &recipe, nil
+	if err := q.First(&recipe).Error; err != nil {
+		return nil, exceptions.ErrorException(c, fiber.StatusNotFound, "Resep tidak ditemukan")
+	}
+	return recipeToMap(recipe), nil
 }
 
-type RecipeCreateInput struct {
-	OwnerId     int64
-	TypeId      int64
-	SubtypeId   *int64
-	Name        string
-	Description *string
-	Visibility  string
-	ParamDose   *string
-	ParamYield  *string
-	ParamTemp   *string
-	ParamGrind  *string
-	ParamRatio  *string
-	Sessions    []RecipeStepInput
-	Notes       []RecipeNoteInput
-}
-
+// RecipeStepInput and RecipeNoteInput are used by service for create/update
 type RecipeStepInput struct {
 	SortOrder   int
 	Name        string
@@ -79,128 +95,111 @@ type RecipeNoteInput struct {
 	Content   string
 }
 
-func RecipeCreate(db *gorm.DB, input RecipeCreateInput) (*models.Recipe, error) {
+func RecipeCreate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (map[string]any, any) {
+	ownerId := helpers.Conv(data["owner_id"]).Int64()
+	typeId := helpers.Conv(data["type_id"]).Int64()
+	name, _ := data["name"].(string)
+	description, _ := data["description"].(*string)
+	visibility, _ := data["visibility"].(string)
+	paramDose, _ := data["param_dose"].(*string)
+	paramYield, _ := data["param_yield"].(*string)
+	paramTemp, _ := data["param_temp"].(*string)
+	paramGrind, _ := data["param_grind"].(*string)
+	paramRatio, _ := data["param_ratio"].(*string)
+
 	recipe := models.Recipe{
-		OwnerId:     &input.OwnerId,
-		TypeId:      input.TypeId,
-		SubtypeId:   input.SubtypeId,
-		Name:        input.Name,
-		Description: input.Description,
-		Visibility:  input.Visibility,
-		ParamDose:   input.ParamDose,
-		ParamYield:  input.ParamYield,
-		ParamTemp:   input.ParamTemp,
-		ParamGrind:  input.ParamGrind,
-		ParamRatio:  input.ParamRatio,
+		OwnerId:     &ownerId,
+		TypeId:      typeId,
+		Name:        name,
+		Description: description,
+		Visibility:  visibility,
+		ParamDose:   paramDose,
+		ParamYield:  paramYield,
+		ParamTemp:   paramTemp,
+		ParamGrind:  paramGrind,
+		ParamRatio:  paramRatio,
+	}
+	if sid := helpers.Conv(data["subtype_id"]).Int64(); sid > 0 {
+		recipe.SubtypeId = &sid
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&recipe).Error; err != nil {
+	sessions, _ := data["sessions"].([]RecipeStepInput)
+	notes, _ := data["notes"].([]RecipeNoteInput)
+
+	err := tx.Transaction(func(t *gorm.DB) error {
+		if err := t.Create(&recipe).Error; err != nil {
 			return err
 		}
-		for _, s := range input.Sessions {
-			sess := models.RecipeSession{
-				RecipeId:    recipe.Id,
-				SortOrder:   s.SortOrder,
-				Name:        s.Name,
-				DurationSec: s.DurationSec,
-				Note:        s.Note,
-			}
-			if err := tx.Create(&sess).Error; err != nil {
+		for _, s := range sessions {
+			sess := models.RecipeSession{RecipeId: recipe.Id, SortOrder: s.SortOrder, Name: s.Name, DurationSec: s.DurationSec, Note: s.Note}
+			if err := t.Create(&sess).Error; err != nil {
 				return err
 			}
 		}
-		for _, n := range input.Notes {
-			note := models.RecipeNote{
-				RecipeId:  recipe.Id,
-				SortOrder: n.SortOrder,
-				Content:   n.Content,
-			}
-			if err := tx.Create(&note).Error; err != nil {
+		for _, n := range notes {
+			note := models.RecipeNote{RecipeId: recipe.Id, SortOrder: n.SortOrder, Content: n.Content}
+			if err := t.Create(&note).Error; err != nil {
 				return err
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "Gagal membuat resep")
 	}
-	return RecipeById(db, recipe.Id)
+	return RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", recipe.Id)
+	})
 }
 
-type RecipeUpdateInput struct {
-	TypeId      *int64
-	SubtypeId   *int64
-	Name        *string
-	Description *string
-	Visibility  *string
-	ParamDose   *string
-	ParamYield  *string
-	ParamTemp   *string
-	ParamGrind  *string
-	ParamRatio  *string
-	Sessions    *[]RecipeStepInput
-	Notes       *[]RecipeNoteInput
-}
-
-func RecipeUpdate(db *gorm.DB, id int64, ownerId int64, input RecipeUpdateInput) (*models.Recipe, error) {
-	err := db.Transaction(func(tx *gorm.DB) error {
-		updates := map[string]interface{}{}
-		if input.TypeId != nil {
-			updates["type_id"] = *input.TypeId
+func RecipeUpdate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id, ownerId int64) (map[string]any, any) {
+	err := tx.Transaction(func(t *gorm.DB) error {
+		updates := map[string]any{}
+		if v := helpers.Conv(data["type_id"]).Int64(); v > 0 {
+			updates["type_id"] = v
 		}
-		if input.SubtypeId != nil {
-			updates["subtype_id"] = *input.SubtypeId
+		if v := helpers.Conv(data["subtype_id"]).Int64(); v > 0 {
+			updates["subtype_id"] = v
 		}
-		if input.Name != nil {
-			updates["name"] = *input.Name
+		if v, ok := data["name"].(string); ok && v != "" {
+			updates["name"] = v
 		}
-		if input.Description != nil {
-			updates["description"] = *input.Description
+		if v, ok := data["description"]; ok {
+			updates["description"] = v
 		}
-		if input.Visibility != nil {
-			updates["visibility"] = *input.Visibility
+		if v, ok := data["visibility"].(string); ok && v != "" {
+			updates["visibility"] = v
 		}
-		if input.ParamDose != nil {
-			updates["param_dose"] = *input.ParamDose
-		}
-		if input.ParamYield != nil {
-			updates["param_yield"] = *input.ParamYield
-		}
-		if input.ParamTemp != nil {
-			updates["param_temp"] = *input.ParamTemp
-		}
-		if input.ParamGrind != nil {
-			updates["param_grind"] = *input.ParamGrind
-		}
-		if input.ParamRatio != nil {
-			updates["param_ratio"] = *input.ParamRatio
+		for _, field := range []string{"param_dose", "param_yield", "param_temp", "param_grind", "param_ratio"} {
+			if v, ok := data[field]; ok {
+				updates[field] = v
+			}
 		}
 		if len(updates) > 0 {
-			if err := tx.Model(&models.Recipe{}).
+			if err := t.Model(&models.Recipe{}).
 				Where("id = ? AND owner_id = ? AND is_default = FALSE AND deleted_at IS NULL", id, ownerId).
 				Updates(updates).Error; err != nil {
 				return err
 			}
 		}
-		if input.Sessions != nil {
-			if err := tx.Where("recipe_id = ?", id).Delete(&models.RecipeSession{}).Error; err != nil {
+		if sessions, ok := data["sessions"].([]RecipeStepInput); ok {
+			if err := t.Where("recipe_id = ?", id).Delete(&models.RecipeSession{}).Error; err != nil {
 				return err
 			}
-			for _, s := range *input.Sessions {
+			for _, s := range sessions {
 				sess := models.RecipeSession{RecipeId: id, SortOrder: s.SortOrder, Name: s.Name, DurationSec: s.DurationSec, Note: s.Note}
-				if err := tx.Create(&sess).Error; err != nil {
+				if err := t.Create(&sess).Error; err != nil {
 					return err
 				}
 			}
 		}
-		if input.Notes != nil {
-			if err := tx.Where("recipe_id = ?", id).Delete(&models.RecipeNote{}).Error; err != nil {
+		if notes, ok := data["notes"].([]RecipeNoteInput); ok {
+			if err := t.Where("recipe_id = ?", id).Delete(&models.RecipeNote{}).Error; err != nil {
 				return err
 			}
-			for _, n := range *input.Notes {
+			for _, n := range notes {
 				note := models.RecipeNote{RecipeId: id, SortOrder: n.SortOrder, Content: n.Content}
-				if err := tx.Create(&note).Error; err != nil {
+				if err := t.Create(&note).Error; err != nil {
 					return err
 				}
 			}
@@ -208,7 +207,9 @@ func RecipeUpdate(db *gorm.DB, id int64, ownerId int64, input RecipeUpdateInput)
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "Gagal memperbarui resep")
 	}
-	return RecipeById(db, id)
+	return RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", id)
+	})
 }

@@ -1,42 +1,46 @@
 package resources
 
-import "github.com/revianto/yava/api/app/models"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/revianto/yava/api/helpers"
+)
 
 type RecipeTypeResponse struct {
-	Id        int64  `json:"id"`
-	Code      string `json:"code"`
-	Name      string `json:"name"`
-	SortOrder int    `json:"sort_order"`
+	Id   string `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
 }
 
 type RecipeSubtypeResponse struct {
-	Id        int64  `json:"id"`
-	TypeId    int64  `json:"type_id"`
-	Code      string `json:"code"`
-	Name      string `json:"name"`
-	SortOrder int    `json:"sort_order"`
+	Id     string `json:"id"`
+	TypeId string `json:"type_id"`
+	Code   string `json:"code"`
+	Name   string `json:"name"`
 }
 
-func RecipeTypeResource(t models.RecipeType) RecipeTypeResponse {
-	return RecipeTypeResponse{Id: t.Id, Code: t.Code, Name: t.Name, SortOrder: t.SortOrder}
+func RecipeTypeResource(c *fiber.Ctx, data any) any {
+	return ToResource(c, data, RecipeTypeSingleResource)
 }
 
-func RecipeTypeListResource(types []models.RecipeType) []RecipeTypeResponse {
-	out := make([]RecipeTypeResponse, len(types))
-	for i, t := range types {
-		out[i] = RecipeTypeResource(t)
+func RecipeTypeSingleResource(c *fiber.Ctx, data any) RecipeTypeResponse {
+	m, _ := data.(map[string]any)
+	return RecipeTypeResponse{
+		Id:   helpers.Conv(m["id"]).String(),
+		Code: helpers.Conv(m["code"]).String(),
+		Name: helpers.Conv(m["name"]).String(),
 	}
-	return out
 }
 
-func RecipeSubtypeResource(s models.RecipeSubtype) RecipeSubtypeResponse {
-	return RecipeSubtypeResponse{Id: s.Id, TypeId: s.TypeId, Code: s.Code, Name: s.Name, SortOrder: s.SortOrder}
+func RecipeSubtypeResource(c *fiber.Ctx, data any) any {
+	return ToResource(c, data, RecipeSubtypeSingleResource)
 }
 
-func RecipeSubtypeListResource(subs []models.RecipeSubtype) []RecipeSubtypeResponse {
-	out := make([]RecipeSubtypeResponse, len(subs))
-	for i, s := range subs {
-		out[i] = RecipeSubtypeResource(s)
+func RecipeSubtypeSingleResource(c *fiber.Ctx, data any) RecipeSubtypeResponse {
+	m, _ := data.(map[string]any)
+	return RecipeSubtypeResponse{
+		Id:     helpers.Conv(m["id"]).String(),
+		TypeId: helpers.Conv(m["type_id"]).String(),
+		Code:   helpers.Conv(m["code"]).String(),
+		Name:   helpers.Conv(m["name"]).String(),
 	}
-	return out
 }

@@ -1,56 +1,50 @@
 package repositories
 
 import (
+	"encoding/json"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/models"
+	"github.com/revianto/yava/api/exceptions"
 	"gorm.io/gorm"
 )
 
-func YvUserFindByGoogleId(db *gorm.DB, googleId string) (*models.YvUser, error) {
-	var user models.YvUser
-	err := db.Where("google_id = ?", googleId).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+func YvUserSingle(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, where func(*gorm.DB) *gorm.DB) (map[string]any, any) {
+	return models.GetSingleData(tx, data, c, locale, where, models.YvUser{})
 }
 
-func YvUserFindById(db *gorm.DB, id int64) (*models.YvUser, error) {
-	var user models.YvUser
-	err := db.First(&user, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
+func YvUserUpsert(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (map[string]any, any) {
+	googleId, _ := data["google_id"].(string)
+	email, _ := data["email"].(string)
+	name, _ := data["name"].(string)
+	avatarStr, _ := data["avatar_url"].(string)
 
-func YvUserUpsert(db *gorm.DB, googleId, email, name string, avatarURL *string) (*models.YvUser, error) {
+	var avatarURL *string
+	if avatarStr != "" {
+		avatarURL = &avatarStr
+	}
+
 	var user models.YvUser
-	err := db.Where("google_id = ?", googleId).First(&user).Error
+	err := tx.Where("google_id = ?", googleId).First(&user).Error
 	if err == gorm.ErrRecordNotFound {
-		user = models.YvUser{
-			GoogleId:  googleId,
-			Email:     email,
-			Name:      name,
-			AvatarUrl: avatarURL,
-		}
-		if txErr := db.Transaction(func(tx *gorm.DB) error {
-			return tx.Create(&user).Error
+		user = models.YvUser{GoogleId: googleId, Email: email, Name: name, AvatarUrl: avatarURL}
+		if txErr := tx.Transaction(func(t *gorm.DB) error {
+			return t.Create(&user).Error
 		}); txErr != nil {
-			return nil, txErr
+			return nil, exceptions.ErrorException(c, fiber.StatusInternalServerError, "Gagal menyimpan pengguna")
 		}
-		return &user, nil
+	} else if err != nil {
+		return nil, exceptions.ErrorException(c, fiber.StatusInternalServerError, "Gagal mengambil data pengguna")
+	} else {
+		if txErr := tx.Transaction(func(t *gorm.DB) error {
+			return t.Model(&user).Updates(map[string]any{"name": name, "avatar_url": avatarURL}).Error
+		}); txErr != nil {
+			return nil, exceptions.ErrorException(c, fiber.StatusInternalServerError, "Gagal memperbarui pengguna")
+		}
 	}
-	if err != nil {
-		return nil, err
-	}
-	// Update name and avatar if changed
-	if txErr := db.Transaction(func(tx *gorm.DB) error {
-		return tx.Model(&user).Updates(map[string]interface{}{
-			"name":       name,
-			"avatar_url": avatarURL,
-		}).Error
-	}); txErr != nil {
-		return nil, txErr
-	}
-	return &user, nil
+
+	b, _ := json.Marshal(user)
+	var m map[string]any
+	json.Unmarshal(b, &m)
+	return m, nil
 }

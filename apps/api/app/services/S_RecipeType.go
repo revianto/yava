@@ -1,30 +1,30 @@
 package services
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/models"
 	"github.com/revianto/yava/api/app/repositories"
+	"github.com/revianto/yava/api/exceptions"
+	"github.com/revianto/yava/api/helpers"
 	"gorm.io/gorm"
 )
 
-func GetRecipeTypes(db *gorm.DB) ([]models.RecipeType, error) {
-	types, err := repositories.RecipeTypeList(db)
-	if err != nil {
-		return nil, &ServiceError{Code: 500, ErrCode: "DB_ERROR", Message: err.Error()}
-	}
-	return types, nil
+func RecipeTypeList(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (any, any) {
+	return repositories.RecipeTypeIndex(tx, data, c, locale)
 }
 
-func GetRecipeSubtypes(db *gorm.DB, typeId int64) ([]models.RecipeSubtype, error) {
-	if typeId <= 0 {
-		return nil, &ServiceError{Code: 400, ErrCode: "INVALID_ID", Message: "ID tidak valid"}
+func RecipeSubtypeList(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, typeId any) (any, any) {
+	id := helpers.Conv(typeId).Int64()
+	if id <= 0 {
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "ID tidak valid")
 	}
-	_, err := repositories.RecipeTypeById(db, typeId)
+	_, err := repositories.RecipeTypeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where(models.RecipeType{Id: id})
+	})
 	if err != nil {
-		return nil, &ServiceError{Code: 404, ErrCode: "TYPE_NOT_FOUND", Message: "Jenis resep tidak ditemukan"}
+		return nil, err
 	}
-	subs, err := repositories.RecipeSubtypesByTypeId(db, typeId)
-	if err != nil {
-		return nil, &ServiceError{Code: 500, ErrCode: "DB_ERROR", Message: err.Error()}
-	}
-	return subs, nil
+	return repositories.RecipeSubtypeMultiple(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("type_id = ?", id)
+	})
 }

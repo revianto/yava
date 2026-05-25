@@ -1,142 +1,77 @@
 package services
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/models"
 	"github.com/revianto/yava/api/app/repositories"
+	"github.com/revianto/yava/api/exceptions"
+	"github.com/revianto/yava/api/helpers"
 	"gorm.io/gorm"
 )
 
-type RecipeListInput struct {
-	OwnerId    *int64
-	Visibility *string
-	TypeId     *int64
-	Page       int
-	Limit      int
+type ValidateRecipeCreate struct {
+	Name       string `json:"name" validate:"required"`
+	TypeId     int64  `json:"type_id" validate:"required,gt=0"`
+	Visibility string `json:"visibility" validate:"required,oneof=private public group"`
 }
 
-func ListRecipes(db *gorm.DB, input RecipeListInput) ([]models.Recipe, int64, error) {
-	if input.Page < 1 {
-		input.Page = 1
+type ValidateRecipeUpdate struct {
+	Id string `json:"id" validate:"required"`
+}
+
+func RecipeList(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (any, any) {
+	return repositories.RecipeIndex(tx, data, c, locale)
+}
+
+func RecipeShow(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id any) (any, any) {
+	rid := helpers.Conv(id).Int64()
+	if rid <= 0 {
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "ID tidak valid")
 	}
-	if input.Limit < 1 || input.Limit > 100 {
-		input.Limit = 20
+	return repositories.RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", rid)
+	})
+}
+
+func RecipeCreate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (any, any) {
+	if _, err := models.Validate(c, data, new(ValidateRecipeCreate), locale); err != nil {
+		return nil, err
 	}
-	recipes, total, err := repositories.RecipeList(db, repositories.RecipeListParams{
-		OwnerId:    input.OwnerId,
-		Visibility: input.Visibility,
-		TypeId:     input.TypeId,
-		Page:       input.Page,
-		Limit:      input.Limit,
+	uid, _ := c.Locals("yv_user_id").(int64)
+	data["owner_id"] = uid
+	if helpers.Conv(data["visibility"]).String() == "" {
+		data["visibility"] = "private"
+	}
+	return repositories.RecipeCreate(tx, data, c, locale)
+}
+
+func RecipeUpdate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id any) (any, any) {
+	rid := helpers.Conv(id).Int64()
+	if rid <= 0 {
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+
+	recipeMap, err := repositories.RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", rid)
 	})
 	if err != nil {
-		return nil, 0, &ServiceError{Code: 500, ErrCode: "DB_ERROR", Message: err.Error()}
-	}
-	return recipes, total, nil
-}
-
-func GetRecipe(db *gorm.DB, id int64) (*models.Recipe, error) {
-	if id <= 0 {
-		return nil, &ServiceError{Code: 400, ErrCode: "INVALID_ID", Message: "ID tidak valid"}
-	}
-	recipe, err := repositories.RecipeById(db, id)
-	if err != nil {
-		return nil, &ServiceError{Code: 404, ErrCode: "RECIPE_NOT_FOUND", Message: "Resep tidak ditemukan"}
-	}
-	return recipe, nil
-}
-
-type RecipeCreateInput struct {
-	TypeId      int64
-	SubtypeId   *int64
-	Name        string
-	Description *string
-	Visibility  string
-	ParamDose   *string
-	ParamYield  *string
-	ParamTemp   *string
-	ParamGrind  *string
-	ParamRatio  *string
-	Sessions    []repositories.RecipeStepInput
-	Notes       []repositories.RecipeNoteInput
-}
-
-func CreateRecipe(db *gorm.DB, userID int64, input RecipeCreateInput) (*models.Recipe, error) {
-	if input.Name == "" {
-		return nil, &ServiceError{Code: 422, ErrCode: "VALIDATION_ERROR", Message: "Nama resep wajib diisi"}
-	}
-	if input.TypeId <= 0 {
-		return nil, &ServiceError{Code: 422, ErrCode: "VALIDATION_ERROR", Message: "Jenis resep wajib dipilih"}
-	}
-	if input.Visibility == "" {
-		input.Visibility = "private"
-	}
-	if input.Visibility != "private" && input.Visibility != "public" && input.Visibility != "group" {
-		return nil, &ServiceError{Code: 422, ErrCode: "VALIDATION_ERROR", Message: "Visibility tidak valid: private, public, atau group"}
+		return nil, err
 	}
 
-	recipe, err := repositories.RecipeCreate(db, repositories.RecipeCreateInput{
-		OwnerId:     userID,
-		TypeId:      input.TypeId,
-		SubtypeId:   input.SubtypeId,
-		Name:        input.Name,
-		Description: input.Description,
-		Visibility:  input.Visibility,
-		ParamDose:   input.ParamDose,
-		ParamYield:  input.ParamYield,
-		ParamTemp:   input.ParamTemp,
-		ParamGrind:  input.ParamGrind,
-		ParamRatio:  input.ParamRatio,
-		Sessions:    input.Sessions,
-		Notes:       input.Notes,
-	})
-	if err != nil {
-		return nil, &ServiceError{Code: 500, ErrCode: "CREATE_FAILED", Message: err.Error()}
+	if helpers.Conv(recipeMap["is_default"]).Bool() {
+		return nil, exceptions.ErrorException(c, fiber.StatusForbidden, "Resep default tidak bisa diubah")
 	}
-	return recipe, nil
-}
+	uid, _ := c.Locals("yv_user_id").(int64)
+	ownerIdRaw := helpers.Conv(recipeMap["owner_id"]).Int64()
+	if ownerIdRaw != uid {
+		return nil, exceptions.ErrorException(c, fiber.StatusForbidden, "Kamu bukan pemilik resep ini")
+	}
 
-type RecipeUpdateInput struct {
-	TypeId      *int64
-	SubtypeId   *int64
-	Name        *string
-	Description *string
-	Visibility  *string
-	ParamDose   *string
-	ParamYield  *string
-	ParamTemp   *string
-	ParamGrind  *string
-	ParamRatio  *string
-	Sessions    *[]repositories.RecipeStepInput
-	Notes       *[]repositories.RecipeNoteInput
-}
-
-func UpdateRecipe(db *gorm.DB, id, userID int64, input RecipeUpdateInput) (*models.Recipe, error) {
-	recipe, err := repositories.RecipeById(db, id)
-	if err != nil {
-		return nil, &ServiceError{Code: 404, ErrCode: "RECIPE_NOT_FOUND", Message: "Resep tidak ditemukan"}
-	}
-	if recipe.IsDefault {
-		return nil, &ServiceError{Code: 403, ErrCode: "FORBIDDEN", Message: "Resep default tidak bisa diubah"}
-	}
-	if recipe.OwnerId == nil || *recipe.OwnerId != userID {
-		return nil, &ServiceError{Code: 403, ErrCode: "FORBIDDEN", Message: "Kamu bukan pemilik resep ini"}
-	}
-	if input.Visibility != nil {
-		v := *input.Visibility
+	if v, ok := data["visibility"].(string); ok && v != "" {
 		if v != "private" && v != "public" && v != "group" {
-			return nil, &ServiceError{Code: 422, ErrCode: "VALIDATION_ERROR", Message: "Visibility tidak valid"}
+			return nil, exceptions.ErrorException(c, fiber.StatusUnprocessableEntity, "Visibility tidak valid")
 		}
 	}
 
-	updated, err := repositories.RecipeUpdate(db, id, userID, repositories.RecipeUpdateInput{
-		TypeId: input.TypeId, SubtypeId: input.SubtypeId,
-		Name: input.Name, Description: input.Description, Visibility: input.Visibility,
-		ParamDose: input.ParamDose, ParamYield: input.ParamYield,
-		ParamTemp: input.ParamTemp, ParamGrind: input.ParamGrind, ParamRatio: input.ParamRatio,
-		Sessions: input.Sessions, Notes: input.Notes,
-	})
-	if err != nil {
-		return nil, &ServiceError{Code: 500, ErrCode: "UPDATE_FAILED", Message: err.Error()}
-	}
-	return updated, nil
+	return repositories.RecipeUpdate(tx, data, c, locale, rid, uid)
 }

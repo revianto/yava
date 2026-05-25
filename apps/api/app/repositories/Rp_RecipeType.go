@@ -1,27 +1,19 @@
 package repositories
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/models"
 	"gorm.io/gorm"
 )
 
-func RecipeTypeList(db *gorm.DB) ([]models.RecipeType, error) {
-	var types []models.RecipeType
-	err := db.Order("sort_order ASC").Find(&types).Error
-	return types, err
+func RecipeTypeIndex(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (models.IndexData, any) {
+	return models.GetIndexData(tx, data, c, locale, models.RecipeType{})
 }
 
-func RecipeTypeById(db *gorm.DB, id int64) (*models.RecipeType, error) {
-	var t models.RecipeType
-	err := db.First(&t, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &t, nil
+func RecipeTypeSingle(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, where func(*gorm.DB) *gorm.DB) (map[string]any, any) {
+	return models.GetSingleData(tx, data, c, locale, where, models.RecipeType{})
 }
 
-func RecipeSubtypesByTypeId(db *gorm.DB, typeId int64) ([]models.RecipeSubtype, error) {
-	var subs []models.RecipeSubtype
-	err := db.Where("type_id = ?", typeId).Order("sort_order ASC").Find(&subs).Error
-	return subs, err
+func RecipeSubtypeMultiple(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, where func(*gorm.DB) *gorm.DB) ([]map[string]any, any) {
+	return models.GetMultipleData(tx, data, c, locale, where, models.RecipeSubtype{})
 }

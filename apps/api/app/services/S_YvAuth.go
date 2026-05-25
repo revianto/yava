@@ -1,43 +1,43 @@
 package services
 
 import (
-	"github.com/revianto/yava/api/app/models"
+	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/repositories"
+	"github.com/revianto/yava/api/exceptions"
 	"github.com/revianto/yava/api/helpers"
 	"gorm.io/gorm"
 )
 
-type AuthResult struct {
-	User  *models.YvUser
-	Token string
-}
-
-func AuthProcessGoogleUser(db *gorm.DB, googleId, email, name string, avatarURL *string) (*AuthResult, error) {
+func AuthProcessGoogleUser(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (any, any) {
+	googleId, _ := data["google_id"].(string)
+	email, _ := data["email"].(string)
 	if googleId == "" || email == "" {
-		return nil, &ServiceError{Code: 400, ErrCode: "INVALID_GOOGLE_USER", Message: "Data pengguna Google tidak lengkap"}
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "Data pengguna Google tidak lengkap")
 	}
 
-	user, err := repositories.YvUserUpsert(db, googleId, email, name, avatarURL)
+	userMap, err := repositories.YvUserUpsert(tx, data, c, locale)
 	if err != nil {
-		return nil, &ServiceError{Code: 500, ErrCode: "USER_UPSERT_FAILED", Message: "Gagal menyimpan data pengguna"}
+		return nil, err
 	}
 
-	avatarStr := ""
-	if user.AvatarUrl != nil {
-		avatarStr = *user.AvatarUrl
-	}
-	token, err := helpers.YvCreateToken(user.Id, user.Email, user.Name, avatarStr)
-	if err != nil {
-		return nil, &ServiceError{Code: 500, ErrCode: "TOKEN_FAILED", Message: "Gagal membuat token"}
+	avatarStr := helpers.Conv(userMap["avatar_url"]).String()
+	token, tokenErr := helpers.YvCreateToken(
+		helpers.Conv(userMap["id"]).Int64(),
+		helpers.Conv(userMap["email"]).String(),
+		helpers.Conv(userMap["name"]).String(),
+		avatarStr,
+	)
+	if tokenErr != nil {
+		return nil, exceptions.ErrorException(c, fiber.StatusInternalServerError, "Gagal membuat token")
 	}
 
-	return &AuthResult{User: user, Token: token}, nil
+	userMap["token"] = token
+	return userMap, nil
 }
 
-func AuthGetMe(db *gorm.DB, userID int64) (*models.YvUser, error) {
-	user, err := repositories.YvUserFindById(db, userID)
-	if err != nil {
-		return nil, &ServiceError{Code: 404, ErrCode: "USER_NOT_FOUND", Message: "Pengguna tidak ditemukan"}
-	}
-	return user, nil
+func AuthMe(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string) (any, any) {
+	uid, _ := c.Locals("yv_user_id").(int64)
+	return repositories.YvUserSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_user.id = ?", uid)
+	})
 }

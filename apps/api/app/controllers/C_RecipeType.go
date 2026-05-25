@@ -1,34 +1,26 @@
 package controllers
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/revianto/yava/api/app/resources"
 	"github.com/revianto/yava/api/app/services"
-	"github.com/revianto/yava/api/helpers"
+	"github.com/revianto/yava/api/exceptions"
 )
 
 // GET /v1/types
 func RecipeTypeList(c *fiber.Ctx) error {
-	types, err := services.GetRecipeTypes(getDB(c))
+	result, err := services.RecipeTypeList(getDB(c), getBodyData(c), c, getLocale(c))
 	if err != nil {
-		se := err.(*services.ServiceError)
-		return c.Status(se.Code).JSON(helpers.YvError(se.ErrCode, se.Message))
+		return exceptions.ResponseErrorException(c, err.(exceptions.AppError))
 	}
-	return c.JSON(helpers.YvSuccess(resources.RecipeTypeListResource(types)))
+	return c.JSON(resources.RecipeTypeResource(c, result))
 }
 
 // GET /v1/types/:id/subtypes
 func RecipeSubtypeList(c *fiber.Ctx) error {
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	result, err := services.RecipeSubtypeList(getDB(c), getBodyData(c), c, getLocale(c), c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(helpers.YvError("INVALID_ID", "ID tidak valid"))
+		return exceptions.ResponseErrorException(c, err.(exceptions.AppError))
 	}
-	subs, svcErr := services.GetRecipeSubtypes(getDB(c), id)
-	if svcErr != nil {
-		se := svcErr.(*services.ServiceError)
-		return c.Status(se.Code).JSON(helpers.YvError(se.ErrCode, se.Message))
-	}
-	return c.JSON(helpers.YvSuccess(resources.RecipeSubtypeListResource(subs)))
+	return c.JSON(resources.RecipeSubtypeResource(c, result))
 }
