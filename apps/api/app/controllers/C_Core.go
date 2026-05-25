@@ -5,8 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
 // Helper untuk mendapatkan DB transaction dari context
 func getDB(c *fiber.Ctx) *gorm.DB {
 	return c.Locals("DB").(*gorm.DB)

@@ -14,8 +14,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 
-	"github.com/revianto/yava/api/app/controllers"
 	"github.com/revianto/yava/api/app/middlewares"
+	"github.com/revianto/yava/api/database"
 	"github.com/revianto/yava/api/exceptions"
 	"github.com/revianto/yava/api/helpers"
 	"github.com/revianto/yava/api/routes"
@@ -89,6 +89,10 @@ func main() {
 		return c.SendString("Hello, World!")
 	})
 
+	// YAVA public API
+	routes.YavaRoutes(app)
+
+	// Legacy admin routes
 	admin := app.Group("/api/admin/:locale")
 	admin.Use(middlewares.ValidateLocale)
 	{
@@ -180,5 +184,5 @@ func ConnDB() {
 	db.Callback().Update().Before("gorm:update").Register("enforce_tx", enforceTx)
 	db.Callback().Delete().Before("gorm:delete").Register("enforce_tx", enforceTx)
 
-	controllers.DB = db
+	database.DB = db
 }

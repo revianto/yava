@@ -125,19 +125,19 @@ Link: https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2?file=YAVA+
 
 ### PHASE 1 — Auth + Recipe CRUD API
 
-- [ ] **P1-01** DB schema migration: `recipe_types`, `recipe_subtypes`, `recipes`, `recipe_sessions`, `recipe_notes`
-- [ ] **P1-02** DB indexes (lihat PRD §12.3)
-- [ ] **P1-03** Google OAuth handler: `GET /auth/google` + `GET /auth/google/callback`
-- [ ] **P1-04** JWT issue + store ke HttpOnly cookie
-- [ ] **P1-05** `POST /auth/logout`
-- [x] **P1-06** JWT middleware (sudah ada `JwtAuth.go`)
-- [ ] **P1-07** `GET /types` — list recipe types
-- [ ] **P1-08** `GET /types/:id/subtypes`
-- [ ] **P1-09** `POST /recipes` — create (sessions + notes, dalam transaction)
-- [ ] **P1-10** `GET /recipes` — list (filter: `visibility`, `type_id`, pagination)
-- [ ] **P1-11** `GET /recipes/:id` — detail (sessions + notes ordered)
-- [ ] **P1-12** `PUT /recipes/:id` — update (owner only)
-- [ ] **P1-13** Seed: recipe types + subtypes + default recipes
+- [x] **P1-01** DB schema migration: `yv_user`, `yv_cd_recipe_type`, `yv_cd_recipe_subtype`, `yv_recipe`, `yv_recipe_session`, `yv_recipe_note`
+- [x] **P1-02** DB indexes (lihat PRD §12.3)
+- [x] **P1-03** Google OAuth handler: `GET /v1/auth/google` + `GET /v1/auth/google/callback`
+- [x] **P1-04** JWT issue + store ke HttpOnly cookie (`yv_token`)
+- [x] **P1-05** `POST /v1/auth/logout`
+- [x] **P1-06** JWT middleware — `YvAuth()` di `middlewares/YvAuth.go`
+- [x] **P1-07** `GET /v1/types` — list recipe types
+- [x] **P1-08** `GET /v1/types/:id/subtypes`
+- [x] **P1-09** `POST /v1/recipes` — create (sessions + notes, dalam transaction)
+- [x] **P1-10** `GET /v1/recipes` — list (filter: `visibility`, `type_id`, `mine`, pagination)
+- [x] **P1-11** `GET /v1/recipes/:id` — detail (sessions + notes ordered)
+- [x] **P1-12** `PUT /v1/recipes/:id` — update (owner only)
+- [x] **P1-13** Seed: recipe types + subtypes + default recipes (migrations 05–07)
 
 ### PHASE 3 — Visibility + Archive API
 

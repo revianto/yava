@@ -57,10 +57,6 @@ function HeroRecipeCard({ recipe, onStart, onOpen }: { recipe: (typeof RECIPES)[
   return (
     <div className="card card--dark card--hero" style={{ position: 'relative', overflow: 'hidden', padding: 40 }}>
       <CozyFigureMug />
-      <div aria-hidden style={{
-        position: 'absolute', right: -60, top: -60, width: 320, height: 320, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(61,43,255,.45), transparent 70%)',
-      }} />
       <div className="row gap-2 wrap" style={{ marginBottom: 18, position: 'relative' }}>
         <span className="tag tag--espresso" style={{ fontSize: 13, padding: '5px 12px' }}>RESEP MINGGU INI</span>
         {recipe.tags.map((t) => (
