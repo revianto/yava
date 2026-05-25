@@ -213,3 +213,92 @@ func RecipeUpdate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id, 
 		return db.Where("yv_recipe.id = ?", id)
 	})
 }
+
+func RecipeSetArchived(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id, ownerId int64, archived bool) (map[string]any, any) {
+	if txErr := tx.Transaction(func(t *gorm.DB) error {
+		return t.Model(&models.Recipe{}).
+			Where("id = ? AND owner_id = ? AND is_default = FALSE AND deleted_at IS NULL", id, ownerId).
+			Update("is_archived", archived).Error
+	}); txErr != nil {
+		return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "Gagal memperbarui status resep")
+	}
+	return RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", id)
+	})
+}
+
+func RecipeDuplicate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id, ownerId int64) (map[string]any, any) {
+	src, err := RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", id)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	newRecipe := models.Recipe{
+		OwnerId:    &ownerId,
+		TypeId:     helpers.Conv(src["type_id"]).Int64(),
+		Name:       helpers.Conv(src["name"]).String() + " (Salinan)",
+		Visibility: "private",
+		ParamDose:  optStrFromMap(src, "param_dose"),
+		ParamYield: optStrFromMap(src, "param_yield"),
+		ParamTemp:  optStrFromMap(src, "param_temp"),
+		ParamGrind: optStrFromMap(src, "param_grind"),
+		ParamRatio: optStrFromMap(src, "param_ratio"),
+	}
+	if desc := helpers.Conv(src["description"]).String(); desc != "" {
+		newRecipe.Description = &desc
+	}
+	if sid := helpers.Conv(src["subtype_id"]).Int64(); sid > 0 {
+		newRecipe.SubtypeId = &sid
+	}
+
+	sessions, _ := src["sessions"].([]any)
+	notes, _ := src["notes"].([]any)
+
+	if txErr := tx.Transaction(func(t *gorm.DB) error {
+		if err := t.Create(&newRecipe).Error; err != nil {
+			return err
+		}
+		for _, si := range sessions {
+			sm, _ := si.(map[string]any)
+			note := optStrFromMap(sm, "note")
+			sess := models.RecipeSession{
+				RecipeId:    newRecipe.Id,
+				SortOrder:   int(helpers.Conv(sm["sort_order"]).Int()),
+				Name:        helpers.Conv(sm["name"]).String(),
+				DurationSec: int(helpers.Conv(sm["duration_sec"]).Int()),
+				Note:        note,
+			}
+			if err := t.Create(&sess).Error; err != nil {
+				return err
+			}
+		}
+		for _, ni := range notes {
+			nm, _ := ni.(map[string]any)
+			note := models.RecipeNote{
+				RecipeId:  newRecipe.Id,
+				SortOrder: int(helpers.Conv(nm["sort_order"]).Int()),
+				Content:   helpers.Conv(nm["content"]).String(),
+			}
+			if err := t.Create(&note).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	}); txErr != nil {
+		return nil, exceptions.ErrorException(c, fiber.StatusNotAcceptable, "Gagal menduplikasi resep")
+	}
+
+	return RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", newRecipe.Id)
+	})
+}
+
+func optStrFromMap(m map[string]any, key string) *string {
+	v := helpers.Conv(m[key]).String()
+	if v == "" {
+		return nil
+	}
+	return &v
+}

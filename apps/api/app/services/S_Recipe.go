@@ -75,3 +75,53 @@ func RecipeUpdate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id a
 
 	return repositories.RecipeUpdate(tx, data, c, locale, rid, uid)
 }
+
+func recipeOwnerCheck(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id int64) (map[string]any, int64, any) {
+	recipeMap, err := repositories.RecipeSingle(tx, data, c, locale, func(db *gorm.DB) *gorm.DB {
+		return db.Where("yv_recipe.id = ?", id)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	if helpers.Conv(recipeMap["is_default"]).Bool() {
+		return nil, 0, exceptions.ErrorException(c, fiber.StatusForbidden, "Resep default tidak bisa diubah")
+	}
+	uid, _ := c.Locals("yv_user_id").(int64)
+	if helpers.Conv(recipeMap["owner_id"]).Int64() != uid {
+		return nil, 0, exceptions.ErrorException(c, fiber.StatusForbidden, "Kamu bukan pemilik resep ini")
+	}
+	return recipeMap, uid, nil
+}
+
+func RecipeArchive(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id any) (any, any) {
+	rid := helpers.Conv(id).Int64()
+	if rid <= 0 {
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+	_, uid, err := recipeOwnerCheck(tx, data, c, locale, rid)
+	if err != nil {
+		return nil, err
+	}
+	return repositories.RecipeSetArchived(tx, data, c, locale, rid, uid, true)
+}
+
+func RecipeRestore(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id any) (any, any) {
+	rid := helpers.Conv(id).Int64()
+	if rid <= 0 {
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+	_, uid, err := recipeOwnerCheck(tx, data, c, locale, rid)
+	if err != nil {
+		return nil, err
+	}
+	return repositories.RecipeSetArchived(tx, data, c, locale, rid, uid, false)
+}
+
+func RecipeDuplicate(tx *gorm.DB, data fiber.Map, c *fiber.Ctx, locale string, id any) (any, any) {
+	rid := helpers.Conv(id).Int64()
+	if rid <= 0 {
+		return nil, exceptions.ErrorException(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+	uid, _ := c.Locals("yv_user_id").(int64)
+	return repositories.RecipeDuplicate(tx, data, c, locale, rid, uid)
+}
