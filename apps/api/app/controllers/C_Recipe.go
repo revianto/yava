@@ -55,3 +55,30 @@ func RecipeUpdate(c *fiber.Ctx) error {
 	}
 	return c.JSON(resources.RecipeResource(c, result))
 }
+
+// PATCH /v1/recipes/:id/archive
+func RecipeArchive(c *fiber.Ctx) error {
+	result, err := services.RecipeArchive(getDB(c), getBodyData(c), c, getLocale(c), c.Params("id"))
+	if err != nil {
+		return exceptions.ResponseErrorException(c, err.(exceptions.AppError))
+	}
+	return c.JSON(resources.RecipeResource(c, result))
+}
+
+// PATCH /v1/recipes/:id/restore
+func RecipeRestore(c *fiber.Ctx) error {
+	result, err := services.RecipeRestore(getDB(c), getBodyData(c), c, getLocale(c), c.Params("id"))
+	if err != nil {
+		return exceptions.ResponseErrorException(c, err.(exceptions.AppError))
+	}
+	return c.JSON(resources.RecipeResource(c, result))
+}
+
+// POST /v1/recipes/:id/duplicate
+func RecipeDuplicate(c *fiber.Ctx) error {
+	result, err := services.RecipeDuplicate(getDB(c), getBodyData(c), c, getLocale(c), c.Params("id"))
+	if err != nil {
+		return exceptions.ResponseErrorException(c, err.(exceptions.AppError))
+	}
+	return c.Status(fiber.StatusCreated).JSON(resources.RecipeResource(c, result))
+}

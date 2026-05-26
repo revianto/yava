@@ -141,29 +141,29 @@ Link: https://claude.ai/design/p/cccb1e57-1e8f-4d2f-b476-0cfa68741af2?file=YAVA+
 
 ### PHASE 3 — Visibility + Archive API
 
-- [ ] **P3-01** `PATCH /recipes/:id/archive`
-- [ ] **P3-02** `PATCH /recipes/:id/restore`
-- [ ] **P3-03** `POST /recipes/:id/duplicate`
-- [ ] **P3-04** Filter public recipes untuk explore endpoint
+- [x] **P3-01** `PATCH /v1/recipes/:id/archive`
+- [x] **P3-02** `PATCH /v1/recipes/:id/restore`
+- [x] **P3-03** `POST /v1/recipes/:id/duplicate`
+- [x] **P3-04** Filter public recipes untuk explore endpoint (`GET /v1/recipes?visibility=public`)
 
 ### PHASE 4 — Group System API
 
-- [ ] **P4-01** Migration: `groups`, `group_members`, `group_recipes`
-- [ ] **P4-02** `POST /groups`
-- [ ] **P4-03** `GET /groups/:id`
-- [ ] **P4-04** `PUT /groups/:id` (admin)
-- [ ] **P4-05** `DELETE /groups/:id` (founder)
-- [ ] **P4-06** `GET /groups/:id/members`
-- [ ] **P4-07** `POST /groups/:id/members` (join via invite code)
-- [ ] **P4-08** `DELETE /groups/:id/members/:uid` (admin)
-- [ ] **P4-09** `PATCH /groups/:id/members/:uid/role` (admin)
-- [ ] **P4-10** `GET /groups/:id/recipes`
-- [ ] **P4-11** `GET /groups/:id/recipes/pending` (admin)
-- [ ] **P4-12** `POST /groups/:id/recipes` — submit
-- [ ] **P4-13** `PATCH /groups/:id/recipes/:rid/approve`
-- [ ] **P4-14** `PATCH /groups/:id/recipes/:rid/reject`
-- [ ] **P4-15** `DELETE /groups/:id/recipes/:rid`
-- [ ] **P4-16** Generate unique `invite_code`
+- [x] **P4-01** Migration: `yv_group`, `yv_group_member`, `yv_group_recipe`
+- [x] **P4-02** `POST /v1/groups`
+- [x] **P4-03** `GET /v1/groups/:id`
+- [x] **P4-04** `PUT /v1/groups/:id` (admin/founder)
+- [x] **P4-05** `DELETE /v1/groups/:id` (founder only)
+- [x] **P4-06** `GET /v1/groups/:id/members`
+- [x] **P4-07** `POST /v1/groups/:id/members` (join via invite_code)
+- [x] **P4-08** `DELETE /v1/groups/:id/members/:uid` (admin/founder)
+- [x] **P4-09** `PATCH /v1/groups/:id/members/:uid/role` (admin/founder)
+- [x] **P4-10** `GET /v1/groups/:id/recipes`
+- [x] **P4-11** `GET /v1/groups/:id/recipes/pending` (admin/founder)
+- [x] **P4-12** `POST /v1/groups/:id/recipes` — submit (member only)
+- [x] **P4-13** `PATCH /v1/groups/:id/recipes/:rid/approve`
+- [x] **P4-14** `PATCH /v1/groups/:id/recipes/:rid/reject`
+- [x] **P4-15** `DELETE /v1/groups/:id/recipes/:rid`
+- [x] **P4-16** Generate unique `invite_code` (crypto/rand hex 16 char)
 
 ### PHASE 5 — Discussions + Notifications API
 
